@@ -77,6 +77,21 @@ class RPCModel:
 
 
     def projection(self, lon, lat, alt):
+        """
+        Convert geographic coordinates of 3D points into image coordinates.
+
+        Args:
+            lon (float or list): longitude(s) of the input 3D point(s)
+            lat (float or list): latitude(s) of the input 3D point(s)
+            alt (float or list): altitude(s) of the input 3D point(s)
+
+        Returns:
+            float or list: horizontal image coordinate(s) (column index, ie x)
+            float or list: vertical image coordinate(s) (row index, ie y)
+        """
+        lon = np.asarray(lon)
+        lat = np.asarray(lat)
+        alt = np.asarray(alt)
         nlon = (lon - self.lon_offset) / self.lon_scale
         nlat = (lat - self.lat_offset) / self.lat_scale
         nalt = (alt - self.alt_offset) / self.alt_scale
@@ -88,6 +103,21 @@ class RPCModel:
 
 
     def localization(self, col, row, alt, return_normalized=False):
+        """
+        Convert image coordinates plus altitude into geographic coordinates.
+
+        Args:
+            col (float or list): x image coordinate(s) of the input point(s)
+            row (float or list): y image coordinate(s) of the input point(s)
+            alt (float or list): altitude(s) of the input point(s)
+
+        Returns:
+            float or list: longitude(s)
+            float or list: latitude(s)
+        """
+        col = np.asarray(col)
+        row = np.asarray(row)
+        alt = np.asarray(alt)
 
         if not hasattr(self, 'lat_num'):
             return self.localization_iterative(col, row, alt, return_normalized)

@@ -31,9 +31,10 @@ Jupyter notebook tutorial covering the main features of the library is included 
 extensive help that can be printed with the `-h` and `--help` switches.
 
     $ rpcm -h
-    usage: rpcm [-h] {projection, localization} ...
+    usage: rpcm [-h] {projection, localization, crop, footprint} ...
 
-There are two subcommands, `projection` and `localization`, each of which has its own help.
+There are several subcommands, `projection`, `localization`, `crop`,
+`footprint`, each of which has its own help.
 
 
 # Common issues

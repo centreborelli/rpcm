@@ -1,7 +1,23 @@
 import argparse
 import numpy as np
+import geojson
 
 import rpcm
+
+
+def valid_geojson(filepath):
+    """
+    Check if a file contains valid geojson.
+    """
+    with open(filepath, 'r') as f:
+        geo = geojson.load(f)
+    if type(geo) == geojson.geometry.Polygon:
+        return geo
+    if type(geo) == geojson.feature.FeatureCollection:
+        p = geo['features'][0]['geometry']
+        if type(p) == geojson.geometry.Polygon:
+            return p
+    raise argparse.ArgumentTypeError('Invalid geojson: only polygons are supported')
 
 
 def main():
@@ -9,8 +25,8 @@ def main():
     Command line interface for rpcm.
     """
     parser = argparse.ArgumentParser(description=('RPC model toolkit'))
-    subparsers = parser.add_subparsers(dest='cmd', help='footprint, projection, localization or crop',
-                                       metavar='{footprint, projection, localization, crop}')
+    subparsers = parser.add_subparsers(dest='cmd', help='projection, localization, crop or footprint',
+                                       metavar='{projection, localization, crop, footprint}')
     subparsers.required = True
 
     # parser for the "footprint" command
@@ -61,17 +77,11 @@ def main():
                                         help='crop a polygon defined with geographic coordinates')
     parser_crop.add_argument('img',
                              help=('path to a GeoTIFF image file with RPC metadata'))
-    parser_crop.add_argument('--lon', type=float, required=True,
-                             help=('longitude of the crop center'))
-    parser_crop.add_argument('--lat', type=float, required=True,
-                             help=('latitude of the crop center'))
+    parser_crop.add_argument('aoi', type=valid_geojson,
+                             help=('path to geojson file defining the area of interest (AOI)'))
     parser_crop.add_argument('-z', type=float,
                              help=('altitude of the crop center'))
-    parser_crop.add_argument('-w', type=int, required=True,
-                             help=('crop width (pixels)'))
-    parser_crop.add_argument('-l', type=int, required=True,
-                             help=('crop height (pixels)'))
-    parser_crop.add_argument('-o', required=True,
+    parser_crop.add_argument('crop',
                              help=('path to the output cropped tif image'))
 
     args = parser.parse_args()
@@ -106,7 +116,7 @@ def main():
                               crop_path=args.crop, verbose=True)
 
     elif args.cmd == 'crop':
-        rpcm.crop(args.o, args.img, args.lon, args.lat, args.z, args.w, args.l)
+        rpcm.crop(args.crop, args.img, args.aoi, args.z)
 
 
 if __name__ == '__main__':

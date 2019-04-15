@@ -84,6 +84,17 @@ def main():
     parser_crop.add_argument('crop',
                              help=('path to the output cropped tif image'))
 
+    # parser for the "angle" command
+    parser_angle = subparsers.add_parser('angle',
+                                         help='compute the view angle difference between two (stereo) images')
+    parser_angle.add_argument('img1',
+                              help=('path to a GeoTIFF image file with RPC metadata'))
+    parser_angle.add_argument('img2',
+                              help=('path to a GeoTIFF image file with RPC metadata'))
+    parser_angle.add_argument('--lon', type=float, help=('longitude'))
+    parser_angle.add_argument('--lat', type=float, help=('latitude'))
+    parser_angle.add_argument('-z', type=float, help=('altitude'))
+
     args = parser.parse_args()
 
     if args.cmd == 'footprint':
@@ -117,6 +128,10 @@ def main():
 
     elif args.cmd == 'crop':
         rpcm.crop(args.crop, args.img, args.aoi, args.z)
+
+    elif args.cmd == 'angle':
+        rpcm.angle_between_views(args.img1, args.img2, args.lon, args.lat,
+                                 args.z, verbose=True)
 
 
 if __name__ == '__main__':

@@ -11,6 +11,22 @@ warnings.filterwarnings("ignore",
                         category=rasterio.errors.NotGeoreferencedWarning)
 
 
+def viewing_direction(zenith, azimut):
+    """
+    Compute the unit 3D vector defined by zenith and azimut angles.
+
+    Args:
+        zenith (float): angle wrt the vertical direction, in degrees
+        azimut (float): angle wrt the north direction, in degrees
+
+    Return:
+        3-tuple: 3D unit vector giving the corresponding direction
+    """
+    z = np.radians(zenith)
+    a = np.radians(azimut)
+    return np.cos(a)*np.sin(z), np.sin(a)*np.sin(z), np.cos(z)
+
+
 def rpc_from_geotiff(geotiff_path):
     """
     Read the RPC coefficients from a GeoTIFF file and return a rpc_model object.

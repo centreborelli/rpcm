@@ -153,3 +153,37 @@ def image_footprint(geotiff_path, z=None, verbose=False):
         print(geojson.dumps(footprint))
 
     return footprint
+
+
+def angle_between_views(geotiff_path_1, geotiff_path_2, lon=None, lat=None,
+                        z=None, verbose=False):
+    """
+    Compute the view angle difference between two (stereo) images.
+
+    Args:
+        geotiff_path_1 (str): path or url to a GeoTIFF file
+        geotiff_path_2 (str): path or url to a GeoTIFF file
+        lon, lat, z (floats): longitude, latitude, altitude of the 3D point
+            where to compute the angle
+
+    Returns:
+        float: angle between the views, in degrees
+    """
+    rpc1 = utils.rpc_from_geotiff(geotiff_path_1)
+    rpc2 = utils.rpc_from_geotiff(geotiff_path_2)
+
+    if lon is None:
+        lon = rpc1.lon_offset
+    if lat is None:
+        lat = rpc1.lat_offset
+    if z is None:
+        z = srtm4.srtm4(lon, lat)
+
+    a = utils.viewing_direction(*rpc1.incidence_angles(lon, lat, z))
+    b = utils.viewing_direction(*rpc2.incidence_angles(lon, lat, z))
+    angle = np.degrees(np.arccos(np.dot(a, b)))
+
+    if verbose:
+        print('{:.3f}'.format(angle))
+
+    return angle

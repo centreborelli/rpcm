@@ -25,7 +25,7 @@ def main():
     parser_proj = subparsers.add_parser('projection',
                                         help='conversion of geographic to image'
                                              ' coordinates')
-    parser_proj.add_argument('--img', required=True,
+    parser_proj.add_argument('img',
                              help=('path or url to a GeoTIFF image file with RPC metadata'))
     parser_proj.add_argument('--lon', type=float, help=('longitude'))
     parser_proj.add_argument('--lat', type=float, help=('latitude'))
@@ -44,7 +44,7 @@ def main():
     parser_loc = subparsers.add_parser('localization',
                                         help='conversion of image to geographic'
                                              ' coordinates')
-    parser_loc.add_argument('--img', required=True,
+    parser_loc.add_argument('img',
                             help=('path or url to a GeoTIFF image file with RPC metadata'))
     parser_loc.add_argument('-x', type=float, help=('horizontal pixel coordinate (i.e. column index)'))
     parser_loc.add_argument('-y', type=float, help=('vertical pixel coordinate (i.e. row index)'))
@@ -59,7 +59,7 @@ def main():
     # parser for the "crop" command
     parser_crop = subparsers.add_parser('crop',
                                         help='crop a polygon defined with geographic coordinates')
-    parser_crop.add_argument('--img', required=True,
+    parser_crop.add_argument('img',
                              help=('path to a GeoTIFF image file with RPC metadata'))
     parser_crop.add_argument('--lon', type=float, required=True,
                              help=('longitude of the crop center'))

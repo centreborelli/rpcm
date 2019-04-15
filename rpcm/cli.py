@@ -21,9 +21,9 @@ def main():
                              help=('path or url to a GeoTIFF image file with RPC metadata'))
     parser_proj.add_argument('--lon', type=float, help=('longitude'))
     parser_proj.add_argument('--lat', type=float, help=('latitude'))
-    parser_proj.add_argument('--alt', type=float, help=('altitude'))
+    parser_proj.add_argument('-z', type=float, help=('altitude, in meters'))
     parser_proj.add_argument('--points',
-                             help=('path to a 2/3 columns txt file: lon lat [alt]'))
+                             help=('path to a 2/3 columns txt file: lon lat [z]'))
     parser_proj.add_argument('--crop', type=str,
                              help=('path to a tif crop previously produced by rpcm. '
                                    'Image coordinates are computed with respect '
@@ -40,9 +40,9 @@ def main():
                             help=('path or url to a GeoTIFF image file with RPC metadata'))
     parser_loc.add_argument('-x', type=float, help=('horizontal pixel coordinate (i.e. column index)'))
     parser_loc.add_argument('-y', type=float, help=('vertical pixel coordinate (i.e. row index)'))
-    parser_loc.add_argument('--alt', type=float, help=('altitude'))
+    parser_loc.add_argument('-z', type=float, help=('altitude, in meters'))
     parser_loc.add_argument('--points',
-                            help=('path to a 3 columns txt file: x y alt'))
+                            help=('path to a 3 columns txt file: x y z'))
     parser_loc.add_argument('--crop', type=str,
                             help=('path to a tif crop previously produced by rpcm. '
                                   'Image coordinates are interpreted with respect '
@@ -57,7 +57,7 @@ def main():
                              help=('longitude of the crop center'))
     parser_crop.add_argument('--lat', type=float, required=True,
                              help=('latitude of the crop center'))
-    parser_crop.add_argument('--alt', type=float,
+    parser_crop.add_argument('-z', type=float,
                              help=('altitude of the crop center'))
     parser_crop.add_argument('-w', type=int, required=True,
                              help=('crop width (pixels)'))
@@ -78,24 +78,24 @@ def main():
                             crop_path=args.crop, svg_path=args.svg,
                             verbose=True)
         else:
-            rpcm.projection(args.img, args.lon, args.lat, args.alt,
+            rpcm.projection(args.img, args.lon, args.lat, args.z,
                             crop_path=args.crop, svg_path=args.svg,
                             verbose=True)
 
     elif args.cmd == 'localization':
-        if args.points and (args.x or args.y or args.alt):
-            parser.error('--points and {-x, -y, --alt} are mutually exclusive')
-        if not args.points and not (args.x and args.y and args.alt):
-            parser.error('either --points or {-x, -y, --alt} must be defined')
+        if args.points and (args.x or args.y or args.z):
+            parser.error('--points and {-x, -y, -z} are mutually exclusive')
+        if not args.points and not (args.x and args.y and args.z):
+            parser.error('either --points or {-x, -y, -z} must be defined')
         if args.points:
             rpcm.localization(args.img, *np.loadtxt(args.points).T,
                               crop_path=args.crop, verbose=True)
         else:
-            rpcm.localization(args.img, args.x, args.y, args.alt,
+            rpcm.localization(args.img, args.x, args.y, args.z
                               crop_path=args.crop, verbose=True)
 
     elif args.cmd == 'crop':
-        rpcm.crop(args.o, args.img, args.lon, args.lat, args.alt, args.w, args.l)
+        rpcm.crop(args.o, args.img, args.lon, args.lat, args.z, args.w, args.l)
 
 
 if __name__ == '__main__':

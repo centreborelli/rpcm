@@ -47,7 +47,7 @@ def image_footprint(image, z=0):
     return geojson.Polygon([coords])  # TODO replace this by  a single call to rpc.localization with a list
 
 
-def projection(img_path, lon, lat, alt=None, crop_path=None, svg_path=None,
+def projection(img_path, lon, lat, z=None, crop_path=None, svg_path=None,
                verbose=False):
     """
     Conversion of geographic coordinates to image coordinates.
@@ -56,7 +56,7 @@ def projection(img_path, lon, lat, alt=None, crop_path=None, svg_path=None,
         img_path (str): path or url to a GeoTIFF image with RPC metadata
         lon (float or list): longitude(s) of the input points
         lat (float or list): latitude(s) of the input points
-        alt (float or list): altitude(s) of the input points
+        z (float or list): altitude(s) of the input points
         crop_path (str): path or url to an image crop produced by rpcm.
             Projected image coordinates are computed wrt this crop.
         svg_path (str): path to an svg file where to plot the projected image
@@ -67,10 +67,10 @@ def projection(img_path, lon, lat, alt=None, crop_path=None, svg_path=None,
         float or list: y pixel coordinate(s) of the projected point(s)
     """
     rpc = rpc_from_geotiff(img_path)
-    if alt is None:
-        alt = srtm4.srtm4(lon, lat)
+    if z is None:
+        z = srtm4.srtm4(lon, lat)
 
-    x, y = rpc.projection(lon, lat, alt)
+    x, y = rpc.projection(lon, lat, z)
 
     if crop_path:
         #TODO
@@ -87,7 +87,7 @@ def projection(img_path, lon, lat, alt=None, crop_path=None, svg_path=None,
     return x, y
 
 
-def localization(img_path, x, y, alt, crop_path=None, verbose=False):
+def localization(img_path, x, y, z, crop_path=None, verbose=False):
     """
     Conversion of image coordinates to geographic coordinates.
 
@@ -95,7 +95,7 @@ def localization(img_path, x, y, alt, crop_path=None, verbose=False):
         img_path (str): path or url to a GeoTIFF image with RPC metadata
         x (float or list): x coordinate(s) of the input points
         y (float or list): y coordinate(s) of the input points
-        alt (float or list): altitude(s) of the input points
+        z (float or list): altitude(s) of the input points
         crop_path (str): path or url to an image crop produced by rpcm.
             Input image coordinates are interpreted wrt this crop.
 
@@ -108,7 +108,7 @@ def localization(img_path, x, y, alt, crop_path=None, verbose=False):
         pass
 
     rpc = rpc_from_geotiff(img_path)
-    lon, lat = rpc.localization(x, y, alt)
+    lon, lat = rpc.localization(x, y, z)
 
     if verbose:
         for p in zip(np.atleast_1d(lon), np.atleast_1d(lat)):
@@ -117,7 +117,7 @@ def localization(img_path, x, y, alt, crop_path=None, verbose=False):
     return lon, lat
 
 
-def crop(output_crop_path, input_img_path, lon, lat, alt=None):
+def crop(output_crop_path, input_img_path, lon, lat, z=None):
     """
     Crop a polygon defined with geographic coordinates.
 
@@ -126,13 +126,13 @@ def crop(output_crop_path, input_img_path, lon, lat, alt=None):
         input_img_path (str): path or url to a GeoTIFF image with RPC metadata
         lon (float): longitude of the crop center
         lat (float): latitude of the crop center
-        alt (float): altitude of the crop center
+        z (float): altitude of the crop center
     """
     rpc = rpc_from_geotiff(input_img_path)
 
-    if alt is None:
-        alt = srtm4.srtm4(lon, lat)
+    if z is None:
+        z = srtm4.srtm4(lon, lat)
 
-    x, y = rpc.projection(lon, lat, alt)
+    x, y = rpc.projection(lon, lat, z)
 
     #TODO make the crop

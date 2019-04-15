@@ -1,4 +1,6 @@
 import warnings
+
+import geojson
 import numpy as np
 import rasterio
 import srtm4
@@ -25,26 +27,35 @@ def rpc_from_geotiff(geotiff_path):
     return rpc_model.RPCModel(rpc_dict)
 
 
-def image_footprint(image, z=0):
+def image_footprint(geotiff_path, z=None, verbose=False):
     """
     Compute the longitude, latitude footprint of an image using its RPC model.
 
     Args:
-        image (str): path or url to a GeoTIFF file
+        geotiff_path (str): path or url to a GeoTIFF file
         z (float): altitude (in meters above the WGS84 ellipsoid) used to
             convert the image corners pixel coordinates into longitude, latitude
 
     Returns:
         geojson.Polygon object containing the image footprint polygon
     """
-    rpc = rpc_from_geotiff(image)
-    with rasterio.open(image, 'r') as src:
+    with rasterio.open(geotiff_path, 'r') as src:
+        rpc_dict = src.tags(ns='RPC')
         h, w = src.shape
-    coords = []
-    for x, y, z in zip([0, w, w, 0], [0, 0, h, h], [z, z, z, z]):
-        lon, lat = rpc.localization(x, y, z)
-        coords.append([lon, lat])
-    return geojson.Polygon([coords])  # TODO replace this by  a single call to rpc.localization with a list
+
+    rpc = rpc_model.RPCModel(rpc_dict)
+    if z is None:
+        z = srtm4.srtm4(rpc.lon_offset, rpc.lat_offset)
+
+    lons, lats = rpc.localization([0, 0, w, w, 0],
+                                  [0, h, h, 0, 0],
+                                  [z, z, z, z, z])
+    footprint = geojson.Polygon([list(zip(lons,  lats))])
+
+    if verbose:
+        print(geojson.dumps(footprint))
+
+    return footprint
 
 
 def projection(img_path, lon, lat, z=None, crop_path=None, svg_path=None,

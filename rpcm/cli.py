@@ -9,9 +9,17 @@ def main():
     Command line interface for rpcm.
     """
     parser = argparse.ArgumentParser(description=('RPC model toolkit'))
-    subparsers = parser.add_subparsers(dest='cmd', help='projection, localization or crop',
-                                       metavar='{projection, localization, crop}')
+    subparsers = parser.add_subparsers(dest='cmd', help='footprint, projection, localization or crop',
+                                       metavar='{footprint, projection, localization, crop}')
     subparsers.required = True
+
+    # parser for the "footprint" command
+    parser_footprint = subparsers.add_parser('footprint',
+                                        help='print the image footprint as a '
+                                             '(lon, lat) polygon')
+    parser_footprint.add_argument('img', help=('path or url to a GeoTIFF image '
+                                               'file with RPC metadata'))
+    parser_footprint.add_argument('-z', type=float, help=('altitude, in meters'))
 
     # parser for the "projection" command
     parser_proj = subparsers.add_parser('projection',
@@ -68,7 +76,10 @@ def main():
 
     args = parser.parse_args()
 
-    if args.cmd == 'projection':
+    if args.cmd == 'footprint':
+        rpcm.image_footprint(args.img, args.z, verbose=True)
+
+    elif args.cmd == 'projection':
         if args.points and (args.lat or args.lon):
             parser.error('--points and {--lat, --lon} are mutually exclusive')
         if not args.points and not (args.lon and args.lat):
@@ -91,7 +102,7 @@ def main():
             rpcm.localization(args.img, *np.loadtxt(args.points).T,
                               crop_path=args.crop, verbose=True)
         else:
-            rpcm.localization(args.img, args.x, args.y, args.z
+            rpcm.localization(args.img, args.x, args.y, args.z,
                               crop_path=args.crop, verbose=True)
 
     elif args.cmd == 'crop':

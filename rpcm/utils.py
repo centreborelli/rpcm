@@ -24,7 +24,7 @@ def viewing_direction(zenith, azimut):
     """
     z = np.radians(zenith)
     a = np.radians(azimut)
-    return np.cos(a)*np.sin(z), np.sin(a)*np.sin(z), np.cos(z)
+    return np.sin(a)*np.sin(z), np.cos(a)*np.sin(z), np.cos(z)
 
 
 def rpc_from_geotiff(geotiff_path):

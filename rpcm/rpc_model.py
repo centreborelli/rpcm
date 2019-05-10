@@ -233,12 +233,12 @@ class RPCModel:
             azimuth (float in [0, 360]): angle wrt to the north, clockwise, in degrees
         """
         # project the input 3D point in the image
-        row, col = np.array(self.projection(lon, lat, z))
+        col, row = self.projection(lon, lat, z)
 
         # localize it with two different altitudes
         s = 100  # scale factor, in meters
-        lon0, lat0 = self.localization(row, col, z + 0*s)
-        lon1, lat1 = self.localization(row, col, z + 1*s)
+        lon0, lat0 = self.localization(col, row, z + 0*s)
+        lon1, lat1 = self.localization(col, row, z + 1*s)
 
         # convert to UTM
         zone_number = utm.conversion.latlon_to_zone_number(lat, lon)

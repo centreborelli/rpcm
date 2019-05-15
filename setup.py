@@ -16,7 +16,7 @@ def readme():
         return f.read()
 
 requirements = ['numpy',
-                'utm',
+                'pyproj',
                 'geojson',
                 'rasterio[s3]>=1.0',
                 'srtm4']

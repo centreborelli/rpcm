@@ -261,9 +261,9 @@ class RPCModel:
         # azimuth is the clockwise angle with respect to the North
         # of the projection of the satellite direction on the horizontal plane
         # This can be computed by taking the argument of a complex number
-        # in a coordinate system where easting is the x axis and northing the y axis
-        northing, easting = satellite_direction[:2]
-        azimuth = np.degrees(np.angle(np.complex(easting, northing)))
+        # in a coordinate system where northing is the x axis and easting the y axis
+        easting, northing = satellite_direction[:2]
+        azimuth = np.degrees(np.angle(np.complex(northing, easting)))
 
         return zenith, azimuth
 

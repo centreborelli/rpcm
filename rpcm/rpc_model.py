@@ -6,7 +6,9 @@ Copyright (C) 2015-19, Enric Meinhardt <enric.meinhardt@cmla.ens-cachan.fr>
 """
 
 import numpy as np
-import utm
+import pyproj
+
+from rpcm import utils
 
 
 def apply_poly(poly, x, y, z):
@@ -241,9 +243,10 @@ class RPCModel:
         lon1, lat1 = self.localization(col, row, z + 1*s)
 
         # convert to UTM
-        zone_number = utm.conversion.latlon_to_zone_number(lat, lon)
-        x0, y0 = utm.from_latlon(lat0, lon0, force_zone_number=zone_number)[:2]
-        x1, y1 = utm.from_latlon(lat1, lon1, force_zone_number=zone_number)[:2]
+        epsg = utils.compute_epsg(lon, lat)
+        in_proj = pyproj.Proj(init="epsg:4326")
+        out_proj = pyproj.Proj(init="epsg:{}".format(epsg))
+        [x0, x1], [y0, y1] = pyproj.transform(in_proj, out_proj, [lon0, lon1], [lat0, lat1])
 
         # compute local satellite incidence direction
         p0 = np.array([x0, y0, z + 0*s])
@@ -251,9 +254,18 @@ class RPCModel:
         satellite_direction = (p1 - p0) / np.linalg.norm(p1 - p0)
 
         # return incidence angles
+
+        # zenith is the angle between the satellite direction and the vertical
         zenith = np.degrees(np.arccos(satellite_direction @ [0, 0, 1]))
-        azimut = np.degrees(np.mod(np.pi/2 - np.angle(np.complex(*satellite_direction[:2])), 2*np.pi))
-        return zenith, azimut
+
+        # azimuth is the clockwise angle with respect to the North
+        # of the projection of the satellite direction on the horizontal plane
+        # This can be computed by taking the argument of a complex number
+        # in a coordinate system where northing is the x axis and easting the y axis
+        easting, northing = satellite_direction[:2]
+        azimuth = np.degrees(np.angle(np.complex(northing, easting)))
+
+        return zenith, azimuth
 
 
     def __repr__(self):

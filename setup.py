@@ -31,7 +31,7 @@ setup(name=about["__title__"],
       author_email=about["__author_email__"],
       packages=[package],
       install_requires=requirements,
-      python_requires=">=3.5",
+      python_requires=">=2.7",
       entry_points="""
           [console_scripts]
           rpcm=rpcm.cli:main

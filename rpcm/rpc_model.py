@@ -253,10 +253,8 @@ class RPCModel:
         p1 = np.array([x1, y1, z + 1*s])
         satellite_direction = (p1 - p0) / np.linalg.norm(p1 - p0)
 
-        # return incidence angles
-
         # zenith is the angle between the satellite direction and the vertical
-        zenith = np.degrees(np.arccos(satellite_direction @ [0, 0, 1]))
+        zenith = np.degrees(np.arccos(np.dot(satellite_direction, [0, 0, 1])))
 
         # azimuth is the clockwise angle with respect to the North
         # of the projection of the satellite direction on the horizontal plane

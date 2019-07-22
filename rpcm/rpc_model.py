@@ -7,8 +7,9 @@ Copyright (C) 2015-19, Enric Meinhardt <enric.meinhardt@cmla.ens-cachan.fr>
 
 import numpy as np
 import pyproj
+import rasterio
 
-from rpcm import utils
+from rpcm import geo
 
 
 def apply_poly(poly, x, y, z):
@@ -51,6 +52,21 @@ def apply_rfm(num, den, x, y, z):
         the value(s) of the rfm on the input point(s).
     """
     return apply_poly(num, x, y, z) / apply_poly(den, x, y, z)
+
+
+def rpc_from_geotiff(geotiff_path):
+    """
+    Read the RPC coefficients from a GeoTIFF file and return an RPCModel object.
+
+    Args:
+        geotiff_path (str): path or url to a GeoTIFF file
+
+    Returns:
+        instance of the rpc_model.RPCModel class
+    """
+    with rasterio.open(geotiff_path, 'r') as src:
+        rpc_dict = src.tags(ns='RPC')
+    return RPCModel(rpc_dict)
 
 
 class RPCModel:
@@ -243,7 +259,7 @@ class RPCModel:
         lon1, lat1 = self.localization(col, row, z + 1*s)
 
         # convert to UTM
-        epsg = utils.compute_epsg(lon, lat)
+        epsg = geo.compute_epsg(lon, lat)
         in_proj = pyproj.Proj(init="epsg:4326")
         out_proj = pyproj.Proj(init="epsg:{}".format(epsg))
         [x0, x1], [y0, y1] = pyproj.transform(in_proj, out_proj, [lon0, lon1], [lat0, lat1])

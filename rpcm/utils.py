@@ -28,21 +28,6 @@ def viewing_direction(zenith, azimut):
     return np.sin(a)*np.sin(z), np.cos(a)*np.sin(z), np.cos(z)
 
 
-def rpc_from_geotiff(geotiff_path):
-    """
-    Read the RPC coefficients from a GeoTIFF file and return a rpc_model object.
-
-    Args:
-        geotiff_path (str): path or url to a GeoTIFF file
-
-    Returns:
-        instance of the rpc_model.RPCModel class
-    """
-    with rasterio.open(geotiff_path, 'r') as src:
-        rpc_dict = src.tags(ns='RPC')
-    return rpc_model.RPCModel(rpc_dict)
-
-
 def bounding_box2D(pts):
     """
     Rectangular bounding box for a list of 2D points.
@@ -129,7 +114,8 @@ def crop_aoi(geotiff, aoi, z=0):
             coordinates of the top-left corner, while w, h are the dimensions
             of the crop.
     """
-    x, y, w, h = bounding_box_of_projected_aoi(rpc_from_geotiff(geotiff), aoi, z)
+    x, y, w, h = bounding_box_of_projected_aoi(rpc_model.rpc_from_geotiff(geotiff),
+                                               aoi, z)
     with rasterio.open(geotiff, 'r') as src:
         crop = src.read(window=((y, y + h), (x, x + w)), boundless=True).squeeze()
     return crop, x, y
@@ -169,25 +155,3 @@ def rasterio_write(path, array, profile={}, tags={}):
             dst.update_tags(**tags)
 
 
-def compute_epsg(lon, lat):
-    """
-    Compute the EPSG code of the UTM zone which contains
-    the point with given longitude and latitude
-
-    Args:
-        lon (float): longitude of the point
-        lat (float): latitude of the point
-
-    Returns:
-        int: EPSG code
-    """
-    # UTM zone number starts from 1 at longitude -180,
-    # and increments by 1 every 6 degrees of longitude
-    zone = int((lon + 180) // 6 + 1)
-
-    # EPSG = CONST + ZONE where CONST is
-    # - 32600 for positive latitudes
-    # - 32700 for negative latitudes
-    const = 32600 if lat > 0 else 32700
-    epsg = const + zone
-    return epsg

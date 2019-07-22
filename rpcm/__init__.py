@@ -9,7 +9,7 @@ import srtm4
 from rpcm import rpc_model
 from rpcm import utils
 from rpcm.rpc_model import RPCModel
-from rpcm.utils import rpc_from_geotiff
+from rpcm.rpc_model import rpc_from_geotiff
 from rpcm.__about__ import __version__
 
 
@@ -36,7 +36,7 @@ def projection(img_path, lon, lat, z=None, crop_path=None, svg_path=None,
         float or list: x pixel coordinate(s) of the projected point(s)
         float or list: y pixel coordinate(s) of the projected point(s)
     """
-    rpc = utils.rpc_from_geotiff(img_path)
+    rpc = rpc_from_geotiff(img_path)
     if z is None:
         z = srtm4.srtm4(lon, lat)
 
@@ -86,7 +86,7 @@ def localization(img_path, x, y, z, crop_path=None, verbose=False):
         h = np.row_stack((x, y, x**0))  # homogeneous coordinates
         x, y = np.dot(np.linalg.inv(C), h).squeeze()[:2]
 
-    rpc = utils.rpc_from_geotiff(img_path)
+    rpc = rpc_from_geotiff(img_path)
     lon, lat = rpc.localization(x, y, z)
 
     if verbose:
@@ -172,8 +172,8 @@ def angle_between_views(geotiff_path_1, geotiff_path_2, lon=None, lat=None,
     Returns:
         float: angle between the views, in degrees
     """
-    rpc1 = utils.rpc_from_geotiff(geotiff_path_1)
-    rpc2 = utils.rpc_from_geotiff(geotiff_path_2)
+    rpc1 = rpc_from_geotiff(geotiff_path_1)
+    rpc2 = rpc_from_geotiff(geotiff_path_2)
 
     if lon is None:
         lon = rpc1.lon_offset

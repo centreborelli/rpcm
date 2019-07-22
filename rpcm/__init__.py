@@ -8,6 +8,7 @@ import srtm4
 
 from rpcm import rpc_model
 from rpcm import utils
+from rpcm.rpc_model import RPCModel
 from rpcm.__about__ import __version__
 
 

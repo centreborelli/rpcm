@@ -10,6 +10,7 @@ import pyproj
 import rasterio
 
 from rpcm import geo
+from rpcm.rpc_file_readers import read_rpc_file
 
 
 def apply_poly(poly, x, y, z):
@@ -69,6 +70,19 @@ def rpc_from_geotiff(geotiff_path):
     return RPCModel(rpc_dict)
 
 
+def rpc_from_rpc_file(rpc_file_path):
+    """
+    Read the RPC coefficients from a sidecar XML or TXT file and return an RPCModel object.
+
+    Args:
+        rpc_file_path (str): path to an XML or TXT RPC file
+
+    Returns:
+        instance of the rpc_model.RPCModel class
+    """
+    return RPCModel(read_rpc_file(rpc_file_path))
+
+
 class RPCModel:
     def __init__(self, d):
         """
@@ -92,6 +106,13 @@ class RPCModel:
         self.row_den = list(map(float, d['LINE_DEN_COEFF'].split()))
         self.col_num = list(map(float, d['SAMP_NUM_COEFF'].split()))
         self.col_den = list(map(float, d['SAMP_DEN_COEFF'].split()))
+
+
+        if 'LON_NUM_COEFF' in d:
+            self.lon_num = list(map(float, d['LON_NUM_COEFF'].split()))
+            self.lon_den = list(map(float, d['LON_DEN_COEFF'].split()))
+            self.lat_num = list(map(float, d['LAT_NUM_COEFF'].split()))
+            self.lat_den = list(map(float, d['LAT_DEN_COEFF'].split()))
 
 
     def projection(self, lon, lat, alt):

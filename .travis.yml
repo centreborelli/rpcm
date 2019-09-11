@@ -1,0 +1,26 @@
+os: linux
+dist: xenial
+language: python
+python: 3.7
+
+install: pip install -e .
+script: bash tests/tests.sh
+
+jobs:
+  include:
+    - stage: test
+    - stage: test
+      python: 2.7
+
+    - stage: deploy
+      if: tag IS present AND repo = cmla/rpcm
+      install: skip
+      script: skip
+      deploy:
+        - provider: pypi
+          user: carlodef
+          password:
+              YOUR_ENCRYPTED_PASSWORD_HERE
+          distributions: sdist bdist_wheel
+          on:
+            tags: true

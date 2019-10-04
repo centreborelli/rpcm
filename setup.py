@@ -19,7 +19,7 @@ requirements = ['numpy',
                 'pyproj',
                 'geojson',
                 'rasterio[s3]>=1.0',
-                'srtm4']
+                'srtm4>=1.0.2']
 
 setup(name=about["__title__"],
       version=about["__version__"],

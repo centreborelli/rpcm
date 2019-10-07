@@ -5,6 +5,7 @@ import warnings
 import geojson
 import numpy as np
 import rasterio
+import rasterio.warp
 import srtm4
 
 from rpcm import rpc_model
@@ -17,6 +18,13 @@ from rpcm.__about__ import __version__
 
 warnings.filterwarnings("ignore",
                         category=rasterio.errors.NotGeoreferencedWarning)
+
+
+class NotGeoreferencedError(Exception):
+    """
+    Custom rpcm Exception.
+    """
+    pass
 
 
 def projection(img_path, lon, lat, z=None, crop_path=None, svg_path=None,
@@ -145,13 +153,27 @@ def image_footprint(geotiff_path, z=None, verbose=False):
         rpc_dict = src.tags(ns='RPC')
         h, w = src.shape
 
-    rpc = rpc_model.RPCModel(rpc_dict)
-    if z is None:
-        z = srtm4.srtm4(rpc.lon_offset, rpc.lat_offset)
+        bounds = src.bounds  # in case of georeferenced ortho image
+        crs = src.crs
 
-    lons, lats = rpc.localization([0, 0, w, w, 0],
-                                  [0, h, h, 0, 0],
-                                  [z, z, z, z, z])
+    if rpc_dict:
+        rpc = rpc_model.RPCModel(rpc_dict)
+        if z is None:
+            z = srtm4.srtm4(rpc.lon_offset, rpc.lat_offset)
+
+        lons, lats = rpc.localization([0, 0, w, w, 0],
+                                      [0, h, h, 0, 0],
+                                      [z, z, z, z, z])
+
+    elif crs and bounds:
+        bounds = rasterio.warp.transform_bounds(crs, {'init': 'epsg:4326'},
+                                                *bounds)
+        lons = bounds[0], bounds[2], bounds[2], bounds[0], bounds[0]
+        lats = bounds[1], bounds[1], bounds[3], bounds[3], bounds[1]
+
+    else:
+        raise NotGeoreferencedError
+
     footprint = geojson.Feature(geometry=geojson.Polygon([list(zip(lons, lats))]),
                                 properties={"name": os.path.basename(geotiff_path)})
 

@@ -1,4 +1,5 @@
 from __future__ import  print_function
+import os
 import warnings
 
 import geojson
@@ -138,7 +139,7 @@ def image_footprint(geotiff_path, z=None, verbose=False):
             convert the image corners pixel coordinates into longitude, latitude
 
     Returns:
-        geojson.Polygon object containing the image footprint polygon
+        geojson.Feature object containing the image footprint polygon
     """
     with rasterio.open(geotiff_path, 'r') as src:
         rpc_dict = src.tags(ns='RPC')
@@ -151,7 +152,8 @@ def image_footprint(geotiff_path, z=None, verbose=False):
     lons, lats = rpc.localization([0, 0, w, w, 0],
                                   [0, h, h, 0, 0],
                                   [z, z, z, z, z])
-    footprint = geojson.Polygon([list(zip(lons,  lats))])
+    footprint = geojson.Feature(geometry=geojson.Polygon([list(zip(lons, lats))]),
+                                properties={"name": os.path.basename(geotiff_path)})
 
     if verbose:
         print(geojson.dumps(footprint))

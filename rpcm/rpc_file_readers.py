@@ -70,13 +70,16 @@ def read_rpc_ikonos(rpc_file):
 
 def read_rpc_xml(rpc_file):
     """
-    Read RPC file assuming the XML format and determine wether it's a pleiades, spot-6 or worldview image
-    
+    Read RPC file assuming the XML format and determine whether it's a pleiades, spot-6 or worldview image
+
     Args:
         rpc_file: RPC sidecar file path (XML formart)
 
     Returns:
-        dictionary read from the RPC file, or empty dict in case of failure
+        dictionary read from the RPC file
+
+    Raises:
+        NotImplementedError: if the file format is not handled (the expected keys are not found)
 
     """
 
@@ -87,17 +90,18 @@ def read_rpc_xml(rpc_file):
     # determine wether it's a pleiades, spot-6 or worldview image
     a = tree.find('Metadata_Identification/METADATA_PROFILE') # PHR_SENSOR
     b = tree.find('IMD/IMAGE/SATID') # WorldView
+    parsed_rpc = None
     if a is not None:
         if a.text in ['PHR_SENSOR', 'S6_SENSOR', 'S7_SENSOR']:
-            return read_rpc_xml_pleiades(tree)
-        else:
-            print('unknown sensor type')
+            parsed_rpc = read_rpc_xml_pleiades(tree)
     elif b is not None:
         if b.text == 'WV02' or b.text == 'WV01' or b.text == 'WV03':
-            return read_rpc_xml_worldview(tree)
-        else:
-            print('unknown sensor type')
-    return {}
+            parsed_rpc = read_rpc_xml_worldview(tree)
+
+    if not parsed_rpc:
+        raise NotImplementedError('XML file {} not supported'.format(rpc_file))
+
+    return parsed_rpc
 
 
 def read_rpc_xml_pleiades(tree):

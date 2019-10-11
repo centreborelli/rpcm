@@ -21,6 +21,8 @@ requirements = ['numpy',
                 'rasterio[s3]>=1.0,<1.1',
                 'srtm4>=1.0.2']
 
+extras_require = {'test': ['pytest']}
+
 setup(name=about["__title__"],
       version=about["__version__"],
       description=about["__description__"],
@@ -31,6 +33,7 @@ setup(name=about["__title__"],
       author_email=about["__author_email__"],
       packages=[package],
       install_requires=requirements,
+      extras_require=extras_require,
       python_requires=">=2.7",
       entry_points="""
           [console_scripts]

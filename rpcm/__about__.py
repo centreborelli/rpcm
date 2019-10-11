@@ -1,7 +1,7 @@
 VERSION = (
     1,
     4,
-    2,
+    3,
 )
 
 __title__ = "rpcm"

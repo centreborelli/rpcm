@@ -6,7 +6,7 @@
 from __future__ import print_function
 import copy
 import numpy as np
-from xml.etree.ElementTree import ElementTree
+from xml.etree import ElementTree
 
 
 def read_rpc_file(rpc_file):
@@ -23,22 +23,27 @@ def read_rpc_file(rpc_file):
 
     """
 
+    with open(rpc_file) as f:
+        rpc_content = f.read()
+
     if rpc_file.lower().endswith('xml'):
-        ## check if the xml is formatted as xml
-        #tree = ElementTree()
-        #tree.parse(rpc_file)
-        return read_rpc_xml(rpc_file)
+        try:
+            rpc = read_rpc_xml(rpc_content)
+        except NotImplementedError:
+            raise NotImplementedError('XML file {} not supported'.format(rpc_file))
     else:
         # we assume that non xml rpc files follow the ikonos convention
-        return read_rpc_ikonos(rpc_file)
+        rpc = read_rpc_ikonos(rpc_content)
+
+    return rpc
 
 
-def read_rpc_ikonos(rpc_file):
+def read_rpc_ikonos(rpc_content):
     """
     Read RPC file assuming the ikonos format 
-    
+
     Args:
-        rpc_file: RPC file path
+        rpc_content: content of RPC sidecar file path read as a string
 
     Returns:
         dictionary read from the RPC file
@@ -46,7 +51,7 @@ def read_rpc_ikonos(rpc_file):
     """
     import re
 
-    lines = open(rpc_file).read().split('\n')
+    lines = rpc_content.split('\n')
 
     d = {}
     for l in lines:
@@ -68,12 +73,12 @@ def read_rpc_ikonos(rpc_file):
 
 
 
-def read_rpc_xml(rpc_file):
+def read_rpc_xml(rpc_content):
     """
     Read RPC file assuming the XML format and determine whether it's a pleiades, spot-6 or worldview image
 
     Args:
-        rpc_file: RPC sidecar file path (XML formart)
+        rpc_content: content of RPC sidecar file path read as a string (XML format)
 
     Returns:
         dictionary read from the RPC file
@@ -83,9 +88,8 @@ def read_rpc_xml(rpc_file):
 
     """
 
-    # read the xml file content
-    tree = ElementTree()
-    tree.parse(rpc_file)
+    # parse the xml file content
+    tree = ElementTree.fromstring(rpc_content)
 
     # determine wether it's a pleiades, spot-6 or worldview image
     a = tree.find('Metadata_Identification/METADATA_PROFILE') # PHR_SENSOR
@@ -99,7 +103,7 @@ def read_rpc_xml(rpc_file):
             parsed_rpc = read_rpc_xml_worldview(tree)
 
     if not parsed_rpc:
-        raise NotImplementedError('XML file {} not supported'.format(rpc_file))
+        raise NotImplementedError()
 
     return parsed_rpc
 

@@ -4,8 +4,6 @@
 
 
 from __future__ import print_function
-import copy
-import numpy as np
 from xml.etree import ElementTree
 
 

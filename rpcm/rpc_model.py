@@ -367,3 +367,70 @@ class RPCModel:
                 f.write('SAMP_NUM_COEFF_{:d}: {:.12f}\n'.format(i+1, self.col_num[i]))
             for i in range(20):
                 f.write('SAMP_DEN_COEFF_{:d}: {:.12f}\n'.format(i+1, self.col_den[i]))
+
+    def equal_offsets(self, other):
+        """
+        Return True if offset coefficients between
+        two RPCModel instances are equal
+        """
+        return (
+            self.row_offset == other.row_offset
+            and self.col_offset == other.col_offset
+            and self.lat_offset == other.lat_offset
+            and self.lon_offset == other.lon_offset
+            and self.alt_offset == other.alt_offset
+        )
+
+    def equal_scales(self, other):
+        """
+        Return True if scale coefficients between
+        two RPCModel instances are equal
+        """
+        return (
+            self.row_scale == other.row_scale
+            and self.col_scale == other.col_scale
+            and self.lat_scale == other.lat_scale
+            and self.lon_scale == other.lon_scale
+            and self.alt_scale == other.alt_scale
+        )
+
+    def equal_coeffs(self, other):
+        """
+        Return True if numerator and denominator coefficients between
+        two RPCModel instances are equal
+        """
+        return (
+            self.row_num == other.row_num
+            and self.row_den == other.row_den
+            and self.col_num == other.col_num
+            and self.col_den == other.col_den
+        )
+
+    def equal_others(self, other):
+        """
+        Return True if other coefficients between
+        two RPCModel instances are equal
+        """
+        if hasattr(self, "lat_num"):
+            equal_others = (
+                self.lon_num == other.lon_num
+                and self.lon_den == other.lon_den
+                and self.lat_num == other.lat_num
+                and self.lat_den == other.lat_den
+            )
+        else:
+            equal_others = True
+        return equal_others
+
+    def __eq__(self, other):
+        """
+        Compare the coefficients of two RPCModel instances
+        If all coefficients are equal, the two instances
+        are considered equal
+        """
+        return (
+            self.equal_offsets(other)
+            and self.equal_coeffs(other)
+            and self.equal_scales(other)
+            and self.equal_others(other)
+        )

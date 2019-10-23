@@ -13,6 +13,13 @@ from rpcm import geo
 from rpcm.rpc_file_readers import read_rpc_file
 
 
+class MaxLocalizationIterationsError(Exception):
+    """
+    Custom rpcm Exception.
+    """
+    pass
+
+
 def apply_poly(poly, x, y, z):
     """
     Evaluates a 3-variables polynom of degree 3 on a triplet of numbers.
@@ -186,6 +193,10 @@ class RPCModel:
 
         Returns:
             lon, lat, alt
+
+        Raises:
+            MaxLocalizationIterationsError: if the while loop exceeds the
+                max number of iterations, which is set to 100.
         """
         # normalise input image coordinates
         ncol = (col - self.col_offset) / self.col_scale
@@ -245,9 +256,11 @@ class RPCModel:
             y1 = apply_rfm(self.row_num, self.row_den, lat, lon + EPS, nalt)
             x2 = apply_rfm(self.col_num, self.col_den, lat + EPS, lon, nalt)
             y2 = apply_rfm(self.row_num, self.row_den, lat + EPS, lon, nalt)
-            #n += 1
 
-        #print('localization_iterative: %d iterations' % n)
+            if n > 100:
+                raise MaxLocalizationIterationsError("Max localization iterations (100) exceeded")
+
+            n += 1
 
         if not return_normalized:
             lon = lon * self.lon_scale + self.lon_offset

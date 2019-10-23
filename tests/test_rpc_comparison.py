@@ -28,4 +28,4 @@ def test_rpc_comparison(rpc1, rpc2):
     assert rpc1 != rpc2
     assert not rpc1.equal_offsets(rpc2)
     assert not rpc1.equal_scales(rpc2)
-    assert rpc1.equal_coeffs(rpc2)
+    assert rpc1.equal_projection(rpc2)

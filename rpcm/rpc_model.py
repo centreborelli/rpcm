@@ -394,10 +394,10 @@ class RPCModel:
             and self.alt_scale == other.alt_scale
         )
 
-    def equal_coeffs(self, other):
+    def equal_projection(self, other):
         """
-        Return True if numerator and denominator coefficients between
-        two RPCModel instances are equal
+        Return True if numerator and denominator coefficients of the projection
+        functions of two RPCModel instances are equal
         """
         return (
             self.row_num == other.row_num
@@ -406,21 +406,21 @@ class RPCModel:
             and self.col_den == other.col_den
         )
 
-    def equal_others(self, other):
+    def equal_localization(self, other):
         """
-        Return True if other coefficients between
-        two RPCModel instances are equal
+        Return True if numerator and denominator coefficients of the localization
+        functions of two RPCModel instances are equal
         """
         if hasattr(self, "lat_num"):
-            equal_others = (
+            equal_localization = (
                 self.lon_num == other.lon_num
                 and self.lon_den == other.lon_den
                 and self.lat_num == other.lat_num
                 and self.lat_den == other.lat_den
             )
         else:
-            equal_others = True
-        return equal_others
+            equal_localization = True
+        return equal_localization
 
     def __eq__(self, other):
         """
@@ -430,7 +430,7 @@ class RPCModel:
         """
         return (
             self.equal_offsets(other)
-            and self.equal_coeffs(other)
             and self.equal_scales(other)
-            and self.equal_others(other)
+            and self.equal_projection(other)
+            and self.equal_localization(other)
         )

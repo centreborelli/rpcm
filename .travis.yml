@@ -11,8 +11,6 @@ script:
 jobs:
   include:
     - stage: test
-    - stage: test
-      python: 2.7
 
     - stage: deploy
       if: tag IS present AND repo = cmla/rpcm

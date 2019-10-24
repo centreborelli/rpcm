@@ -18,7 +18,7 @@ def readme():
 requirements = ['numpy',
                 'pyproj',
                 'geojson',
-                'rasterio[s3]>=1.0,<1.1',
+                'rasterio[s3]>=1.0',
                 'srtm4>=1.0.2']
 
 extras_require = {'test': ['pytest']}
@@ -34,7 +34,7 @@ setup(name=about["__title__"],
       packages=[package],
       install_requires=requirements,
       extras_require=extras_require,
-      python_requires=">=2.7",
+      python_requires=">=3",
       entry_points="""
           [console_scripts]
           rpcm=rpcm.cli:main

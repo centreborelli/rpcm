@@ -3,21 +3,20 @@
 # Copyright (C) 2015-19, Enric Meinhardt <enric.meinhardt@cmla.ens-cachan.fr>
 
 
-from __future__ import print_function
 from xml.etree import ElementTree
 
 
 def read_rpc_file(rpc_file):
     """
-    Read RPC from a file deciding the format from the extension of the filename.  
-      xml          : spot6, pleiades, worldview  
-      txt (others) : ikonos 
-    
+    Read RPC from a file deciding the format from the extension of the filename.
+      xml          : spot6, pleiades, worldview
+      txt (others) : ikonos
+
     Args:
         rpc_file: RPC sidecar file path
 
     Returns:
-        dictionary read from the RPC file, or an empty dict if fail 
+        dictionary read from the RPC file, or an empty dict if fail
 
     """
 
@@ -38,7 +37,7 @@ def read_rpc_file(rpc_file):
 
 def read_rpc_ikonos(rpc_content):
     """
-    Read RPC file assuming the ikonos format 
+    Read RPC file assuming the ikonos format
 
     Args:
         rpc_content: content of RPC sidecar file path read as a string
@@ -54,7 +53,7 @@ def read_rpc_ikonos(rpc_content):
     d = {}
     for l in lines:
         ll = l.split()
-        if len(ll) > 1: 
+        if len(ll) > 1:
             k = re.sub(r"[^a-zA-Z0-9_]","",ll[0])
             d[k] = ll[1]
 
@@ -109,8 +108,8 @@ def read_rpc_xml(rpc_content):
 def read_rpc_xml_pleiades(tree):
     """
     Read RPC fields from a parsed XML tree assuming the pleiades, spot-6 XML format
-    Also reads the inverse model parameters 
-    
+    Also reads the inverse model parameters
+
     Args:
         tree: parsed XML tree
 
@@ -132,7 +131,7 @@ def read_rpc_xml_pleiades(tree):
     m['LAT_DEN_COEFF'] = parse_coeff(d, "LINE_DEN_COEFF", range(1, 21))
     #m['ERR_BIAS']       = parse_coeff(d, "ERR_BIAS", ['X', 'Y'])
 
-    
+
     ## inverse model (PROJECTION)
     i = tree.find('Rational_Function_Model/Global_RFM/Inverse_Model')
     m['SAMP_NUM_COEFF']  = parse_coeff(i, "SAMP_NUM_COEFF", range(1, 21))
@@ -140,7 +139,7 @@ def read_rpc_xml_pleiades(tree):
     m['LINE_NUM_COEFF']  = parse_coeff(i, "LINE_NUM_COEFF", range(1, 21))
     m['LINE_DEN_COEFF']  = parse_coeff(i, "LINE_DEN_COEFF", range(1, 21))
     m['ERR_BIAS']        = parse_coeff(i, "ERR_BIAS", ['ROW', 'COL'])
-    
+
     # validity domains
     v = tree.find('Rational_Function_Model/Global_RFM/RFM_Validity')
     #vd = v.find('Direct_Model_Validity_Domain')
@@ -176,7 +175,7 @@ def read_rpc_xml_pleiades(tree):
 def read_rpc_xml_worldview(tree):
     """
     Read RPC fields from a parsed XML tree assuming the worldview XML format
-    
+
     Args:
         tree: parsed XML tree
 
@@ -189,13 +188,13 @@ def read_rpc_xml_worldview(tree):
     # inverse model (PROJECTION)
     im = tree.find('RPB/IMAGE')
     l = im.find('LINENUMCOEFList/LINENUMCOEF')
-    m['LINE_NUM_COEFF'] =  l.text 
+    m['LINE_NUM_COEFF'] =  l.text
     l = im.find('LINEDENCOEFList/LINEDENCOEF')
-    m['LINE_DEN_COEFF'] =  l.text 
+    m['LINE_DEN_COEFF'] =  l.text
     l = im.find('SAMPNUMCOEFList/SAMPNUMCOEF')
-    m['SAMP_NUM_COEFF'] =  l.text 
+    m['SAMP_NUM_COEFF'] =  l.text
     l = im.find('SAMPDENCOEFList/SAMPDENCOEF')
-    m['SAMP_DEN_COEFF'] =  l.text 
+    m['SAMP_DEN_COEFF'] =  l.text
     m['ERR_BIAS'] = float(im.find('ERRBIAS').text)
 
     # scale and offset
@@ -204,7 +203,7 @@ def read_rpc_xml_worldview(tree):
     m['LAT_OFF'     ] = float(im.find('LATOFFSET').text)
     m['LONG_OFF'    ] = float(im.find('LONGOFFSET').text)
     m['HEIGHT_OFF'  ] = float(im.find('HEIGHTOFFSET').text)
-    
+
     m['LINE_SCALE'  ] = float(im.find('LINESCALE').text)
     m['SAMP_SCALE'  ] = float(im.find('SAMPSCALE').text)
     m['LAT_SCALE'   ] = float(im.find('LATSCALE').text)
@@ -217,5 +216,3 @@ def read_rpc_xml_worldview(tree):
 #    m.lastCol = int(tree.find('IMD/NUMCOLUMNS').text)
 
     return m
-
-

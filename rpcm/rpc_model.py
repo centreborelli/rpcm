@@ -387,11 +387,11 @@ class RPCModel:
         two RPCModel instances are equal
         """
         return (
-            self.row_offset == other.row_offset
-            and self.col_offset == other.col_offset
-            and self.lat_offset == other.lat_offset
-            and self.lon_offset == other.lon_offset
-            and self.alt_offset == other.alt_offset
+            np.allclose(self.row_offset, other.row_offset)
+            and np.allclose(self.col_offset, other.col_offset)
+            and np.allclose(self.lat_offset, other.lat_offset)
+            and np.allclose(self.lon_offset, other.lon_offset)
+            and np.allclose(self.alt_offset, other.alt_offset)
         )
 
     def equal_scales(self, other):
@@ -400,11 +400,11 @@ class RPCModel:
         two RPCModel instances are equal
         """
         return (
-            self.row_scale == other.row_scale
-            and self.col_scale == other.col_scale
-            and self.lat_scale == other.lat_scale
-            and self.lon_scale == other.lon_scale
-            and self.alt_scale == other.alt_scale
+            np.allclose(self.row_scale, other.row_scale)
+            and np.allclose(self.col_scale, other.col_scale)
+            and np.allclose(self.lat_scale, other.lat_scale)
+            and np.allclose(self.lon_scale, other.lon_scale)
+            and np.allclose(self.alt_scale, other.alt_scale)
         )
 
     def equal_projection(self, other):
@@ -413,10 +413,10 @@ class RPCModel:
         functions of two RPCModel instances are equal
         """
         return (
-            self.row_num == other.row_num
-            and self.row_den == other.row_den
-            and self.col_num == other.col_num
-            and self.col_den == other.col_den
+            np.allclose(self.row_num, other.row_num)
+            and np.allclose(self.row_den, other.row_den)
+            and np.allclose(self.col_num, other.col_num)
+            and np.allclose(self.col_den, other.col_den)
         )
 
     def equal_localization(self, other):
@@ -426,10 +426,10 @@ class RPCModel:
         """
         if hasattr(self, "lat_num"):
             equal_localization = (
-                self.lon_num == other.lon_num
-                and self.lon_den == other.lon_den
-                and self.lat_num == other.lat_num
-                and self.lat_den == other.lat_den
+                np.allclose(self.lon_num, other.lon_num)
+                and np.allclose(self.lon_den, other.lon_den)
+                and np.allclose(self.lat_num, other.lat_num)
+                and np.allclose(self.lat_den, other.lat_den)
             )
         else:
             equal_localization = True

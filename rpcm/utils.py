@@ -141,16 +141,15 @@ def rasterio_write(path, array, profile={}, tags={}):
 
     # read image size and number of bands
     array = np.atleast_3d(array)
-    height, width, nbands = array.shape
+    nbands, height, width = array.shape
 
     # define image metadata dict
     profile.update(driver=driver, count=nbands, width=width, height=height,
                    dtype=array.dtype)
 
     # write to file
-    with rasterio.Env():
-        with rasterio.open(path, 'w', **profile) as dst:
-            dst.write(np.transpose(array, (2, 0, 1)))
-            dst.update_tags(**tags)
+    with rasterio.open(path, 'w', **profile) as dst:
+        dst.write(array)
+        dst.update_tags(**tags)
 
 

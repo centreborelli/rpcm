@@ -91,35 +91,48 @@ def rpc_from_rpc_file(rpc_file_path):
 
 
 class RPCModel:
-    def __init__(self, d):
+    def __init__(self, d, dict_format="geotiff"):
         """
         Args:
             d (dict): dictionary read from a geotiff file with
-                rasterio.open('/path/to/file.tiff', 'r').tags(ns='RPC')
+                rasterio.open('/path/to/file.tiff', 'r').tags(ns='RPC'),
+                or from the .__dict__ of an RPCModel object.
+            dict_format (str): format of the dictionary passed in `d`.
+                Either "geotiff" if read from the tags of a geotiff file,
+                or "rpcm" if read from the .__dict__ of an RPCModel object.
         """
-        self.row_offset = float(d['LINE_OFF'])
-        self.col_offset = float(d['SAMP_OFF'])
-        self.lat_offset = float(d['LAT_OFF'])
-        self.lon_offset = float(d['LONG_OFF'])
-        self.alt_offset = float(d['HEIGHT_OFF'])
+        if dict_format == "geotiff":
+            self.row_offset = float(d['LINE_OFF'])
+            self.col_offset = float(d['SAMP_OFF'])
+            self.lat_offset = float(d['LAT_OFF'])
+            self.lon_offset = float(d['LONG_OFF'])
+            self.alt_offset = float(d['HEIGHT_OFF'])
 
-        self.row_scale = float(d['LINE_SCALE'])
-        self.col_scale = float(d['SAMP_SCALE'])
-        self.lat_scale = float(d['LAT_SCALE'])
-        self.lon_scale = float(d['LONG_SCALE'])
-        self.alt_scale = float(d['HEIGHT_SCALE'])
+            self.row_scale = float(d['LINE_SCALE'])
+            self.col_scale = float(d['SAMP_SCALE'])
+            self.lat_scale = float(d['LAT_SCALE'])
+            self.lon_scale = float(d['LONG_SCALE'])
+            self.alt_scale = float(d['HEIGHT_SCALE'])
 
-        self.row_num = list(map(float, d['LINE_NUM_COEFF'].split()))
-        self.row_den = list(map(float, d['LINE_DEN_COEFF'].split()))
-        self.col_num = list(map(float, d['SAMP_NUM_COEFF'].split()))
-        self.col_den = list(map(float, d['SAMP_DEN_COEFF'].split()))
+            self.row_num = list(map(float, d['LINE_NUM_COEFF'].split()))
+            self.row_den = list(map(float, d['LINE_DEN_COEFF'].split()))
+            self.col_num = list(map(float, d['SAMP_NUM_COEFF'].split()))
+            self.col_den = list(map(float, d['SAMP_DEN_COEFF'].split()))
 
+            if 'LON_NUM_COEFF' in d:
+                self.lon_num = list(map(float, d['LON_NUM_COEFF'].split()))
+                self.lon_den = list(map(float, d['LON_DEN_COEFF'].split()))
+                self.lat_num = list(map(float, d['LAT_NUM_COEFF'].split()))
+                self.lat_den = list(map(float, d['LAT_DEN_COEFF'].split()))
 
-        if 'LON_NUM_COEFF' in d:
-            self.lon_num = list(map(float, d['LON_NUM_COEFF'].split()))
-            self.lon_den = list(map(float, d['LON_DEN_COEFF'].split()))
-            self.lat_num = list(map(float, d['LAT_NUM_COEFF'].split()))
-            self.lat_den = list(map(float, d['LAT_DEN_COEFF'].split()))
+        elif dict_format == "rpcm":
+            self.__dict__ = d
+
+        else:
+            raise ValueError(
+                "dict_format '{}' not supported. "
+                "Should be {{'geotiff','rpcm'}}".format(dict_format)
+            )
 
 
     def projection(self, lon, lat, alt):

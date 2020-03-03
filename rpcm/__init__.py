@@ -26,6 +26,13 @@ class NotGeoreferencedError(Exception):
     pass
 
 
+class NoSRTMWarning(Warning):
+    """
+    Custom rpcm warning raised when no SRTM altitude is available.
+    """
+    pass
+
+
 def projection(img_path, lon, lat, z=None, crop_path=None, svg_path=None,
                verbose=False):
     """
@@ -159,6 +166,10 @@ def image_footprint(geotiff_path, z=None, verbose=False):
         rpc = rpc_model.RPCModel(rpc_dict)
         if z is None:
             z = srtm4.srtm4(rpc.lon_offset, rpc.lat_offset)
+            if np.isnan(z):
+                warnings.warn("no SRTM altitude available, using RPC alt_offset",
+                              category=NoSRTMWarning)
+                z = rpc.alt_offset
 
         lons, lats = rpc.localization([0, 0, w, w, 0],
                                       [0, h, h, 0, 0],

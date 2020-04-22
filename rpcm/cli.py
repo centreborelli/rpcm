@@ -101,9 +101,9 @@ def main():
         rpcm.image_footprint(args.img, args.z, verbose=True)
 
     elif args.cmd == 'projection':
-        if args.points and (args.lat or args.lon):
+        if args.points and (args.lat is not None or args.lon is not None):
             parser.error('--points and {--lat, --lon} are mutually exclusive')
-        if not args.points and not (args.lon and args.lat):
+        if not args.points and (args.lon is None or args.lat is None):
             parser.error('either --points or {--lat, --lon} must be defined')
         if args.points:
             rpcm.projection(args.img, *np.loadtxt(args.points).T,
@@ -115,9 +115,11 @@ def main():
                             verbose=True)
 
     elif args.cmd == 'localization':
-        if args.points and (args.x or args.y or args.z):
+        if args.points and (args.x is not None or args.y is not None or args.z
+                            is not None):
             parser.error('--points and {-x, -y, -z} are mutually exclusive')
-        if not args.points and not (args.x and args.y and args.z):
+        if not args.points and (args.x is None or args.y is None or args.z is
+                                None):
             parser.error('either --points or {-x, -y, -z} must be defined')
         if args.points:
             rpcm.localization(args.img, *np.loadtxt(args.points).T,

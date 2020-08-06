@@ -394,6 +394,37 @@ class RPCModel:
             for i in range(20):
                 f.write('SAMP_DEN_COEFF_{:d}: {:.12f}\n'.format(i+1, self.col_den[i]))
 
+
+    def to_geotiff_dict(self):
+        """
+        Return a dictionary storing the RPC coefficients as GeoTIFF tags.
+
+        This dictionary d can be written in a GeoTIFF file header with:
+
+            with rasterio.open("/path/to/image.tiff", "r+") as f:
+                f.update_tags(ns="RPC", **d)
+        """
+        d = {}
+        d["LINE_OFF"] = self.row_offset
+        d["SAMP_OFF"] = self.col_offset
+        d["LAT_OFF"] = self.lat_offset
+        d["LONG_OFF"] = self.lon_offset
+        d["HEIGHT_OFF"] = self.alt_offset
+
+        d["LINE_SCALE"] = self.row_scale
+        d["SAMP_SCALE"] = self.col_scale
+        d["LAT_SCALE"] = self.lat_scale
+        d["LONG_SCALE"] = self.lon_scale
+        d["HEIGHT_SCALE"] = self.alt_scale
+
+        d["LINE_NUM_COEFF"] = " ".join([str(x) for x in self.row_num])
+        d["LINE_DEN_COEFF"] = " ".join([str(x) for x in self.row_den])
+        d["SAMP_NUM_COEFF"] = " ".join([str(x) for x in self.col_num])
+        d["SAMP_DEN_COEFF"] = " ".join([str(x) for x in self.col_den])
+
+        return {k: d[k] for k in sorted(d)}
+
+
     def equal_offsets(self, other):
         """
         Return True if offset coefficients between

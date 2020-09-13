@@ -148,16 +148,16 @@ class RPCModel:
             float or list: horizontal image coordinate(s) (column index, ie x)
             float or list: vertical image coordinate(s) (row index, ie y)
         """
-        lon = np.asarray(lon)
-        lat = np.asarray(lat)
-        alt = np.asarray(alt)
-        nlon = (lon - self.lon_offset) / self.lon_scale
-        nlat = (lat - self.lat_offset) / self.lat_scale
-        nalt = (alt - self.alt_offset) / self.alt_scale
+        nlon = (np.asarray(lon) - self.lon_offset) / self.lon_scale
+        nlat = (np.asarray(lat) - self.lat_offset) / self.lat_scale
+        nalt = (np.asarray(alt) - self.alt_offset) / self.alt_scale
+
         col = apply_rfm(self.col_num, self.col_den, nlat, nlon, nalt)
         row = apply_rfm(self.row_num, self.row_den, nlat, nlon, nalt)
+
         col = col * self.col_scale + self.col_offset
         row = row * self.row_scale + self.row_offset
+
         return col, row
 
 
@@ -174,66 +174,62 @@ class RPCModel:
             float or list: longitude(s)
             float or list: latitude(s)
         """
-        col = np.asarray(col)
-        row = np.asarray(row)
-        alt = np.asarray(alt)
+        ncol = (np.asarray(col) - self.col_offset) / self.col_scale
+        nrow = (np.asarray(row) - self.row_offset) / self.row_scale
+        nalt = (np.asarray(alt) - self.alt_offset) / self.alt_scale
 
         if not hasattr(self, 'lat_num'):
-            return self.localization_iterative(col, row, alt, return_normalized)
+            lon, lat = self.localization_iterative(ncol, nrow, nalt)
+        else:
+            lon = apply_rfm(self.lon_num, self.lon_den, nrow, ncol, nalt)
+            lat = apply_rfm(self.lat_num, self.lat_den, nrow, ncol, nalt)
 
-        ncol = (col - self.col_offset) / self.col_scale
-        nrow = (row - self.row_offset) / self.row_scale
-        nalt = (alt - self.alt_offset) / self.alt_scale
-        lon = apply_rfm(self.lon_num, self.lon_den, nrow, ncol, nalt)
-        lat = apply_rfm(self.lat_num, self.lat_den, nrow, ncol, nalt)
         if not return_normalized:
             lon = lon * self.lon_scale + self.lon_offset
             lat = lat * self.lat_scale + self.lat_offset
+
         return lon, lat
 
 
-    def localization_iterative(self, col, row, alt, return_normalized=False):
+    def localization_iterative(self, col, row, alt):
         """
         Iterative estimation of the localization function (image to ground),
         for a list of image points expressed in image coordinates.
 
         Args:
-            col, row: image coordinates
-            alt: altitude (in meters above the ellipsoid) of the corresponding
-                3D point
-            return_normalized: boolean flag. If true, then return normalized
-                coordinates
+            col, row: normalized image coordinates (between -1 and 1)
+            alt: normalized altitude (between -1 and 1) of the corresponding 3D
+                point
 
         Returns:
-            lon, lat, alt
+            lon, lat: normalized longitude and latitude
 
         Raises:
-            MaxLocalizationIterationsError: if the while loop exceeds the
-                max number of iterations, which is set to 100.
+            MaxLocalizationIterationsError: if the while loop exceeds the max
+                number of iterations, which is set to 100.
         """
-        # normalise input image coordinates
-        ncol = (col - self.col_offset) / self.col_scale
-        nrow = (row - self.row_offset) / self.row_scale
-        nalt = (alt - self.alt_offset) / self.alt_scale
-
         # target point: Xf (f for final)
-        Xf = np.vstack([ncol, nrow]).T
+        Xf = np.vstack([col, row]).T
 
         # use 3 corners of the lon, lat domain and project them into the image
         # to get the first estimation of (lon, lat)
         # EPS is 2 for the first iteration, then 0.1.
-        lon = -ncol ** 0  # vector of ones
-        lat = -ncol ** 0
+        lon = -col ** 0  # vector of ones
+        lat = -col ** 0
         EPS = 2
-        x0 = apply_rfm(self.col_num, self.col_den, lat, lon, nalt)
-        y0 = apply_rfm(self.row_num, self.row_den, lat, lon, nalt)
-        x1 = apply_rfm(self.col_num, self.col_den, lat, lon + EPS, nalt)
-        y1 = apply_rfm(self.row_num, self.row_den, lat, lon + EPS, nalt)
-        x2 = apply_rfm(self.col_num, self.col_den, lat + EPS, lon, nalt)
-        y2 = apply_rfm(self.row_num, self.row_den, lat + EPS, lon, nalt)
+        x0 = apply_rfm(self.col_num, self.col_den, lat, lon, alt)
+        y0 = apply_rfm(self.row_num, self.row_den, lat, lon, alt)
+        x1 = apply_rfm(self.col_num, self.col_den, lat, lon + EPS, alt)
+        y1 = apply_rfm(self.row_num, self.row_den, lat, lon + EPS, alt)
+        x2 = apply_rfm(self.col_num, self.col_den, lat + EPS, lon, alt)
+        y2 = apply_rfm(self.row_num, self.row_den, lat + EPS, lon, alt)
 
         n = 0
-        while not np.all((x0 - ncol) ** 2 + (y0 - nrow) ** 2 < 1e-18):
+        while not np.all((x0 - col) ** 2 + (y0 - row) ** 2 < 1e-18):
+
+            if n > 100:
+                raise MaxLocalizationIterationsError("Max localization iterations (100) exceeded")
+
             X0 = np.vstack([x0, y0]).T
             X1 = np.vstack([x1, y1]).T
             X2 = np.vstack([x2, y2]).T
@@ -263,21 +259,14 @@ class RPCModel:
 
             # update X0, X1 and X2
             EPS = .1
-            x0 = apply_rfm(self.col_num, self.col_den, lat, lon, nalt)
-            y0 = apply_rfm(self.row_num, self.row_den, lat, lon, nalt)
-            x1 = apply_rfm(self.col_num, self.col_den, lat, lon + EPS, nalt)
-            y1 = apply_rfm(self.row_num, self.row_den, lat, lon + EPS, nalt)
-            x2 = apply_rfm(self.col_num, self.col_den, lat + EPS, lon, nalt)
-            y2 = apply_rfm(self.row_num, self.row_den, lat + EPS, lon, nalt)
-
-            if n > 100:
-                raise MaxLocalizationIterationsError("Max localization iterations (100) exceeded")
+            x0 = apply_rfm(self.col_num, self.col_den, lat, lon, alt)
+            y0 = apply_rfm(self.row_num, self.row_den, lat, lon, alt)
+            x1 = apply_rfm(self.col_num, self.col_den, lat, lon + EPS, alt)
+            y1 = apply_rfm(self.row_num, self.row_den, lat, lon + EPS, alt)
+            x2 = apply_rfm(self.col_num, self.col_den, lat + EPS, lon, alt)
+            y2 = apply_rfm(self.row_num, self.row_den, lat + EPS, lon, alt)
 
             n += 1
-
-        if not return_normalized:
-            lon = lon * self.lon_scale + self.lon_offset
-            lat = lat * self.lat_scale + self.lat_offset
 
         return lon, lat
 

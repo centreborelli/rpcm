@@ -222,8 +222,8 @@ class RPCModel:
         # use 3 corners of the lon, lat domain and project them into the image
         # to get the first estimation of (lon, lat)
         # EPS is 2 for the first iteration, then 0.1.
-        lon = -np.ones(len(Xf))
-        lat = -np.ones(len(Xf))
+        lon = -ncol ** 0  # vector of ones
+        lat = -ncol ** 0
         EPS = 2
         x0 = apply_rfm(self.col_num, self.col_den, lat, lon, nalt)
         y0 = apply_rfm(self.row_num, self.row_den, lat, lon, nalt)
@@ -250,11 +250,11 @@ class RPCModel:
             # <u, e1> / <e1, e1>
             num = np.sum(np.multiply(u, e1), axis=1)
             den = np.sum(np.multiply(e1, e1), axis=1)
-            a1 = np.divide(num, den)
+            a1 = np.divide(num, den).squeeze()
 
             num = np.sum(np.multiply(u, e2), axis=1)
             den = np.sum(np.multiply(e2, e2), axis=1)
-            a2 = np.divide(num, den)
+            a2 = np.divide(num, den).squeeze()
 
             # use the coefficients a1, a2 to compute an approximation of the
             # point on the gound which in turn will give us the new X0
@@ -279,10 +279,7 @@ class RPCModel:
             lon = lon * self.lon_scale + self.lon_offset
             lat = lat * self.lat_scale + self.lat_offset
 
-        if np.size(lon) == 1 and np.size(lat) == 1:
-            return lon[0], lat[0]
-        else:
-            return lon, lat
+        return lon, lat
 
 
     def incidence_angles(self, lon, lat, z):

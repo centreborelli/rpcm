@@ -161,7 +161,7 @@ class RPCModel:
         return col, row
 
 
-    def localization(self, col, row, alt, return_normalized=False):
+    def localization(self, col, row, alt, return_normalized=False, delta=.1):
         """
         Convert image coordinates plus altitude into geographic coordinates.
 
@@ -179,7 +179,7 @@ class RPCModel:
         nalt = (np.asarray(alt) - self.alt_offset) / self.alt_scale
 
         if not hasattr(self, 'lat_num'):
-            lon, lat = self.localization_iterative(ncol, nrow, nalt)
+            lon, lat = self.localization_iterative(ncol, nrow, nalt, delta=delta)
         else:
             lon = apply_rfm(self.lon_num, self.lon_den, nrow, ncol, nalt)
             lat = apply_rfm(self.lat_num, self.lat_den, nrow, ncol, nalt)
@@ -191,7 +191,7 @@ class RPCModel:
         return lon, lat
 
 
-    def localization_iterative(self, col, row, alt):
+    def localization_iterative(self, col, row, alt, delta=.1):
         """
         Iterative estimation of the localization function (image to ground),
         for a list of image points expressed in image coordinates.
@@ -211,12 +211,13 @@ class RPCModel:
         # target point: Xf (f for final)
         Xf = np.vstack([col, row]).T
 
-        # use 3 corners of the lon, lat domain and project them into the image
+        # use 3 points centered around (0, 0) in the normalized domain
+        # and project them into the image
         # to get the first estimation of (lon, lat)
         # EPS is 2 for the first iteration, then 0.1.
-        lon = -col ** 0  # vector of ones
-        lat = -col ** 0
-        EPS = 2
+        lon = -col ** 0 * delta
+        lat = -col ** 0 * delta
+        EPS = 2 * delta
         x0 = apply_rfm(self.col_num, self.col_den, lat, lon, alt)
         y0 = apply_rfm(self.row_num, self.row_den, lat, lon, alt)
         x1 = apply_rfm(self.col_num, self.col_den, lat, lon + EPS, alt)

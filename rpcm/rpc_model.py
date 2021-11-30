@@ -62,6 +62,22 @@ def apply_rfm(num, den, x, y, z):
     return apply_poly(num, x, y, z) / apply_poly(den, x, y, z)
 
 
+def remove_ikonos_units(rpc_dict):
+    """
+    When there is a RPC.txt file along the tif, GDAL will get the rpcs from
+    the textual file instead of the tif.
+    However, ikonos textual files contain units along the numbers, and these
+    are not expected when constructing from GeoTiff.
+    This function removes the units from the dict.
+    """
+    geotiff_dict = {}
+    for key, value in rpc_dict.items():
+        if key.endswith('_OFF') or key.endswith('_SCALE'):
+            value = value.split()[0]
+        geotiff_dict[key] = value
+    return geotiff_dict
+
+
 def rpc_from_geotiff(geotiff_path):
     """
     Read the RPC coefficients from a GeoTIFF file and return an RPCModel object.
@@ -73,7 +89,7 @@ def rpc_from_geotiff(geotiff_path):
         instance of the rpc_model.RPCModel class
     """
     with rasterio.open(geotiff_path, 'r') as src:
-        rpc_dict = src.tags(ns='RPC')
+        rpc_dict = remove_ikonos_units(src.tags(ns='RPC'))
     return RPCModel(rpc_dict)
 
 

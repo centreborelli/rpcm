@@ -2,11 +2,11 @@
 
 Python implementation of the Rational Polynomial Camera (RPC) model for optical satellite images.
 
-[Carlo de Franchis](mailto:carlo.de-franchis@ens-cachan.fr), Gabriele Facciolo, Enric Meinhardt-Llopis
-(CMLA, ENS Cachan, Université Paris-Saclay) 2013-19
+[Carlo de Franchis](mailto:carlo.de-franchis@ens-paris-saclay.fr), Gabriele Facciolo, Enric Meinhardt-Llopis
+(Centre Borelli, ENS Paris-Saclay, Université Paris-Saclay) 2013-21
 
 `rpcm` is a Python library and command line tool for geolocating satellite images
-with RPCs. Its main source code repository is https://github.com/cmla/rpcm.
+with RPCs. Its main source code repository is https://github.com/centreborelli/rpcm.
 
 
 # Installation
@@ -17,7 +17,7 @@ To install `rpcm` from PyPI:
 
 Alternatively, to install `rpcm` from sources:
 
-    git clone https://github.com/cmla/rpcm.git
+    git clone https://github.com/centreborelli/rpcm.git
     cd rpcm
     pip install -e .
 

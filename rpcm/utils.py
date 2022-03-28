@@ -109,9 +109,7 @@ def crop_aoi(geotiff, aoi, z=0):
 
     Return:
         crop (array): numpy array containing the cropped image
-        x, y, w, h (ints): image coordinates of the crop. x, y are the
-            coordinates of the top-left corner, while w, h are the dimensions
-            of the crop.
+        x, y (ints): pixel coordinates of the top-left corner of the crop
     """
     x, y, w, h = bounding_box_of_projected_aoi(rpc_model.rpc_from_geotiff(geotiff),
                                                aoi, z)
@@ -126,7 +124,7 @@ def rasterio_write(path, array, profile={}, tags={}):
 
     Args:
         path (str): path to the output tiff/png file
-        array (numpy array): 2D or 3D array containing the image to write.
+        array (numpy array): 2D or 3D array containing the image to write
         profile (dict): rasterio profile (ie dictionary of metadata)
         tags (dict): dictionary with additional geotiff tags
     """
@@ -140,8 +138,12 @@ def rasterio_write(path, array, profile={}, tags={}):
         raise NotImplementedError('format {} not supported'.format(extension))
 
     # read image size and number of bands
-    array = np.atleast_3d(array)
-    nbands, height, width = array.shape
+    try:
+        nbands, height, width = array.shape
+    except ValueError:  # not enough values to unpack (expected 3, got 2)
+        nbands = 1
+        height, width = array.shape
+        array = np.asarray([array])
 
     # define image metadata dict
     profile.update(driver=driver, count=nbands, width=width, height=height,
@@ -151,5 +153,3 @@ def rasterio_write(path, array, profile={}, tags={}):
     with rasterio.open(path, 'w', **profile) as dst:
         dst.write(array)
         dst.update_tags(**tags)
-
-

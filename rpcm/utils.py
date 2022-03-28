@@ -128,15 +128,6 @@ def rasterio_write(path, array, profile={}, tags={}):
         profile (dict): rasterio profile (ie dictionary of metadata)
         tags (dict): dictionary with additional geotiff tags
     """
-    # determine the driver based on the file extension
-    extension = os.path.splitext(path)[1].lower()
-    if extension in ['.tif', '.tiff']:
-        driver = 'GTiff'
-    elif extension in ['.png']:
-        driver = 'png'
-    else:
-        raise NotImplementedError('format {} not supported'.format(extension))
-
     # read image size and number of bands
     try:
         nbands, height, width = array.shape
@@ -146,7 +137,10 @@ def rasterio_write(path, array, profile={}, tags={}):
         array = np.asarray([array])
 
     # define image metadata dict
-    profile.update(driver=driver, count=nbands, width=width, height=height,
+    profile.update(driver=rasterio.driver_from_extension(path),
+                   count=nbands,
+                   width=width,
+                   height=height,
                    dtype=array.dtype)
 
     # write to file

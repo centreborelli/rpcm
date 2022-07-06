@@ -95,6 +95,8 @@ def read_rpc_xml(rpc_content):
     if a is not None:
         if a.text in ['PHR_SENSOR', 'S6_SENSOR', 'S7_SENSOR']:
             parsed_rpc = read_rpc_xml_pleiades(tree)
+        elif a.text in ['PNEO_SENSOR']:
+            parsed_rpc = read_rpc_xml_pleiades_neo(tree)
     elif b is not None:
         if b.text == 'WV02' or b.text == 'WV01' or b.text == 'WV03':
             parsed_rpc = read_rpc_xml_worldview(tree)
@@ -134,6 +136,70 @@ def read_rpc_xml_pleiades(tree):
 
     ## inverse model (PROJECTION)
     i = tree.find('Rational_Function_Model/Global_RFM/Inverse_Model')
+    m['SAMP_NUM_COEFF']  = parse_coeff(i, "SAMP_NUM_COEFF", range(1, 21))
+    m['SAMP_DEN_COEFF']  = parse_coeff(i, "SAMP_DEN_COEFF", range(1, 21))
+    m['LINE_NUM_COEFF']  = parse_coeff(i, "LINE_NUM_COEFF", range(1, 21))
+    m['LINE_DEN_COEFF']  = parse_coeff(i, "LINE_DEN_COEFF", range(1, 21))
+    m['ERR_BIAS']        = parse_coeff(i, "ERR_BIAS", ['ROW', 'COL'])
+
+    # validity domains
+    v = tree.find('Rational_Function_Model/Global_RFM/RFM_Validity')
+    #vd = v.find('Direct_Model_Validity_Domain')
+    #m.firstRow = float(vd.find('FIRST_ROW').text)
+    #m.firstCol = float(vd.find('FIRST_COL').text)
+    #m.lastRow  = float(vd.find('LAST_ROW').text)
+    #m.lastCol  = float(vd.find('LAST_COL').text)
+
+    #vi = v.find('Inverse_Model_Validity_Domain')
+    #m.firstLon = float(vi.find('FIRST_LON').text)
+    #m.firstLat = float(vi.find('FIRST_LAT').text)
+    #m.lastLon  = float(vi.find('LAST_LON').text)
+    #m.lastLat  = float(vi.find('LAST_LAT').text)
+
+    # scale and offset
+    # the -1 in line and column offsets is due to Pleiades RPC convention
+    # that states that the top-left pixel of an image has coordinates
+    # (1, 1)
+    m['LINE_OFF'    ] = float(v.find('LINE_OFF').text) - 1
+    m['SAMP_OFF'    ] = float(v.find('SAMP_OFF').text) - 1
+    m['LAT_OFF'     ] = float(v.find('LAT_OFF').text)
+    m['LONG_OFF'    ] = float(v.find('LONG_OFF').text)
+    m['HEIGHT_OFF'  ] = float(v.find('HEIGHT_OFF').text)
+    m['LINE_SCALE'  ] = float(v.find('LINE_SCALE').text)
+    m['SAMP_SCALE'  ] = float(v.find('SAMP_SCALE').text)
+    m['LAT_SCALE'   ] = float(v.find('LAT_SCALE').text)
+    m['LONG_SCALE'  ] = float(v.find('LONG_SCALE').text)
+    m['HEIGHT_SCALE'] = float(v.find('HEIGHT_SCALE').text)
+
+    return m
+
+
+def read_rpc_xml_pleiades_neo(tree):
+    """
+    Read RPC fields from a parsed XML tree assuming the pleiades NEO XML format
+    Also reads the inverse model parameters
+    Args:
+        tree: parsed XML tree
+    Returns:
+        dictionary read from the RPC file, or empty dict in case of failure
+    """
+    m = {}
+
+    def parse_coeff(element, prefix, indices):
+        """ helper function"""
+        return ' '.join([element.find("%s_%s" % (prefix, str(x))).text for x in indices])
+
+    # direct model (LOCALIZATION)
+    d = tree.find('Rational_Function_Model/Global_RFM/ImagetoGround_Values')
+    m['LON_NUM_COEFF'] = parse_coeff(d, "LON_NUM_COEFF", range(1, 21))
+    m['LON_DEN_COEFF'] = parse_coeff(d, "LON_DEN_COEFF", range(1, 21))
+    m['LAT_NUM_COEFF'] = parse_coeff(d, "LAT_NUM_COEFF", range(1, 21))
+    m['LAT_DEN_COEFF'] = parse_coeff(d, "LAT_DEN_COEFF", range(1, 21))
+    #m['ERR_BIAS']       = parse_coeff(d, "ERR_BIAS", ['X', 'Y'])
+
+
+    ## inverse model (PROJECTION)
+    i = tree.find('Rational_Function_Model/Global_RFM/GroundtoImage_Values')
     m['SAMP_NUM_COEFF']  = parse_coeff(i, "SAMP_NUM_COEFF", range(1, 21))
     m['SAMP_DEN_COEFF']  = parse_coeff(i, "SAMP_DEN_COEFF", range(1, 21))
     m['LINE_NUM_COEFF']  = parse_coeff(i, "LINE_NUM_COEFF", range(1, 21))

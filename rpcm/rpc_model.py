@@ -293,9 +293,8 @@ class RPCModel:
 
         # convert to UTM
         epsg = geo.compute_epsg(lon, lat)
-        in_proj = pyproj.Proj(init="epsg:4326")
-        out_proj = pyproj.Proj(init="epsg:{}".format(epsg))
-        [x0, x1], [y0, y1] = pyproj.transform(in_proj, out_proj, [lon0, lon1], [lat0, lat1])
+        transformer = pyproj.Transformer.from_crs(4326, epsg, always_xy=True)
+        [x0, x1], [y0, y1] = transformer.transform([lon0, lon1], [lat0, lat1])
 
         # compute local satellite incidence direction
         p0 = np.array([x0, y0, z + 0*s])
@@ -310,7 +309,7 @@ class RPCModel:
         # This can be computed by taking the argument of a complex number
         # in a coordinate system where northing is the x axis and easting the y axis
         easting, northing = satellite_direction[:2]
-        azimuth = np.degrees(np.angle(np.complex(northing, easting)))
+        azimuth = np.degrees(np.angle(complex(northing, easting)))
 
         return zenith, azimuth
 

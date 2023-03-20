@@ -66,6 +66,13 @@ def read_rpc_ikonos(rpc_content):
     d['LINE_NUM_COEFF']  = parse_coeff(d, "LINE_NUM_COEFF", range(1, 21))
     d['LINE_DEN_COEFF']  = parse_coeff(d, "LINE_DEN_COEFF", range(1, 21))
 
+    # if the LON/LAT coefficients are present then it must be an "extended ikonos"
+    if 'LON_NUM_COEFF_1' in d:
+        d['LON_NUM_COEFF']  = parse_coeff(d, "LON_NUM_COEFF", range(1, 21))
+        d['LON_DEN_COEFF']  = parse_coeff(d, "LON_DEN_COEFF", range(1, 21))
+        d['LAT_NUM_COEFF']   = parse_coeff(d, "LAT_NUM_COEFF" , range(1, 21))
+        d['LAT_DEN_COEFF']   = parse_coeff(d, "LAT_DEN_COEFF" , range(1, 21))
+
     return d
 
 

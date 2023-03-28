@@ -151,6 +151,7 @@ def read_rpc_xml_pleiades(tree):
 
     # validity domains
     v = tree.find('Rational_Function_Model/Global_RFM/RFM_Validity')
+    i = tree.find("Rational_Function_Model/Global_RFM/RFM_Validity/Inverse_Model_Validity_Domain")
     #vd = v.find('Direct_Model_Validity_Domain')
     #m.firstRow = float(vd.find('FIRST_ROW').text)
     #m.firstCol = float(vd.find('FIRST_COL').text)
@@ -177,6 +178,10 @@ def read_rpc_xml_pleiades(tree):
     m['LAT_SCALE'   ] = float(v.find('LAT_SCALE').text)
     m['LONG_SCALE'  ] = float(v.find('LONG_SCALE').text)
     m['HEIGHT_SCALE'] = float(v.find('HEIGHT_SCALE').text)
+    m["FIRST_LON"] = float(i.find("FIRST_LON").text)
+    m["FIRST_LAT"] = float(i.find("FIRST_LAT").text)
+    m["LAST_LON"] = float(i.find("LAST_LON").text)
+    m["LAST_LAT"] = float(i.find("LAST_LAT").text)
 
     return m
 
@@ -215,6 +220,7 @@ def read_rpc_xml_pleiades_neo(tree):
 
     # validity domains
     v = tree.find('Rational_Function_Model/Global_RFM/RFM_Validity')
+    g = tree.find("Rational_Function_Model/Global_RFM/RFM_Validity/GroundtoImage_Validity_Domain")
     #vd = v.find('Direct_Model_Validity_Domain')
     #m.firstRow = float(vd.find('FIRST_ROW').text)
     #m.firstCol = float(vd.find('FIRST_COL').text)
@@ -238,6 +244,10 @@ def read_rpc_xml_pleiades_neo(tree):
     m['LAT_SCALE'   ] = float(v.find('LAT_SCALE').text)
     m['LONG_SCALE'  ] = float(v.find('LONG_SCALE').text)
     m['HEIGHT_SCALE'] = float(v.find('HEIGHT_SCALE').text)
+    m["FIRST_LON"] = float(g.find("FIRST_LON").text)
+    m["FIRST_LAT"] = float(g.find("FIRST_LAT").text)
+    m["LAST_LON"] = float(g.find("LAST_LON").text)
+    m["LAST_LAT"] = float(g.find("LAST_LAT").text)
 
     return m
 

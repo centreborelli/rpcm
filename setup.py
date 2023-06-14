@@ -1,3 +1,12 @@
+
+# instructions for releasing this code to pypi:
+#
+# vim rpcm/__about__.py  # update version number
+# python setup.py sdist bdist_wheel
+# python -m twine upload dist/rpcm-XXX.tar.gz
+# rm -r build dist rpcm.egg-info
+
+
 import os
 from codecs import open
 from setuptools import setup

@@ -228,11 +228,8 @@ def read_rpc_xml_pleiades_neo(tree):
     #m.lastLat  = float(vi.find('LAST_LAT').text)
 
     # scale and offset
-    # the -1 in line and column offsets is due to Pleiades RPC convention
-    # that states that the top-left pixel of an image has coordinates
-    # (1, 1)
-    m['LINE_OFF'    ] = float(v.find('LINE_OFF').text) - 1
-    m['SAMP_OFF'    ] = float(v.find('SAMP_OFF').text) - 1
+    m['LINE_OFF'    ] = float(v.find('LINE_OFF').text)
+    m['SAMP_OFF'    ] = float(v.find('SAMP_OFF').text)
     m['LAT_OFF'     ] = float(v.find('LAT_OFF').text)
     m['LONG_OFF'    ] = float(v.find('LONG_OFF').text)
     m['HEIGHT_OFF'  ] = float(v.find('HEIGHT_OFF').text)

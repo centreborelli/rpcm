@@ -2,7 +2,8 @@ import os
 
 import pytest
 
-from rpcm import rpc_from_rpc_file
+from rpcm.rpc_model import rpc_from_rpc_file, RPCModel
+from rpcm.rpc_file_readers import read_rpc_file
 
 here = os.path.abspath(os.path.dirname(__file__))
 files_dir = os.path.join(here, "test_rpc_files")
@@ -25,6 +26,16 @@ def supported_files():
     return [os.path.join(files_dir, filename) for filename in filenames]
 
 
+def supported_file_multi_model():
+    """
+    Gives the list of files that should be correctly
+    parsed by `rpc_from_rpc_file` returning multiple RPC models
+    """
+    filenames = ["ENMAP01-____L1B-DT0000001011_20220609T081225Z_001_V010111_20230119T143357Z-METADATA.XML"]
+
+    return [os.path.join(files_dir, filename) for filename in filenames]
+
+
 def unsupported_files():
     """
     Gives the list of files that `rpc_from_rpc_file` should not be
@@ -41,6 +52,16 @@ def test_successful_rpc_file_parsing(filepath):
     Check that filepath can be parsed without errors being raised
     """
     rpc_from_rpc_file(filepath)
+
+
+@pytest.mark.parametrize("filepath", supported_file_multi_model())
+def test_successful_rpc_file_parsing_multi_model(filepath):
+    """
+    Check that filepath can be parsed without errors being raised
+    """
+    rpc = read_rpc_file(filepath)
+    assert len(rpc.keys()) > 1
+    model = RPCModel(rpc["1"])
 
 
 @pytest.mark.parametrize("filepath", unsupported_files())

@@ -5,10 +5,10 @@ import geojson
 import numpy as np
 import rasterio
 import rasterio.warp
-import srtm4
 
 from rpcm import rpc_model
 from rpcm import utils
+from rpcm.dem import get_copernicus_elevation
 from rpcm.rpc_model import RPCModel
 from rpcm.rpc_model import rpc_from_geotiff
 from rpcm.rpc_model import rpc_from_rpc_file
@@ -54,7 +54,7 @@ def projection(img_path, lon, lat, z=None, crop_path=None, svg_path=None,
     """
     rpc = rpc_from_geotiff(img_path)
     if z is None:
-        z = srtm4.srtm4(lon, lat)
+        z = get_copernicus_elevation(lon, lat)
 
     x, y = rpc.projection(lon, lat, z)
 
@@ -126,7 +126,7 @@ def crop(output_crop_path, input_geotiff_path, aoi, z=None):
     """
     if z is None:  # read z from srtm
         lons, lats = np.asarray(aoi['coordinates']).squeeze().T
-        z = srtm4.srtm4(np.mean(lons[:-1]), np.mean(lats[:-1]))
+        z = get_copernicus_elevation(np.mean(lons[:-1]), np.mean(lats[:-1]))
 
     # do the crop
     crop, x, y = utils.crop_aoi(input_geotiff_path, aoi, z)
@@ -165,7 +165,7 @@ def image_footprint(geotiff_path, z=None, verbose=False):
     if rpc_dict:
         rpc = rpc_model.RPCModel(rpc_dict)
         if z is None:
-            z = srtm4.srtm4(rpc.lon_offset, rpc.lat_offset)
+            z = get_copernicus_elevation(rpc.lon_offset, rpc.lat_offset)
             if np.isnan(z):
                 warnings.warn("no SRTM altitude available, using RPC alt_offset",
                               category=NoSRTMWarning)
@@ -215,7 +215,7 @@ def angle_between_views(geotiff_path_1, geotiff_path_2, lon=None, lat=None,
     if lat is None:
         lat = rpc1.lat_offset
     if z is None:
-        z = srtm4.srtm4(lon, lat)
+        z = get_copernicus_elevation(lon, lat)
 
     a = utils.viewing_direction(*rpc1.incidence_angles(lon, lat, z))
     b = utils.viewing_direction(*rpc2.incidence_angles(lon, lat, z))

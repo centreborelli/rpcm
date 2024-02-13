@@ -54,9 +54,10 @@ def projection(img_path, lon, lat, z=None, crop_path=None, svg_path=None,
     """
     rpc = rpc_from_geotiff(img_path)
     if z is None:
-        z = get_srtm_elevations(lon, lat, True)
-        if len(z) == 1:
-            z = z[0]
+        if isinstance(lon, list) and isinstance(lat, list):
+            z = get_srtm_elevations(lon, lat, True)
+        else:
+            z = get_srtm_elevations([lon], [lat], True)[0]
 
     x, y = rpc.projection(lon, lat, z)
 

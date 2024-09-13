@@ -27,7 +27,7 @@ def readme():
 requirements = ['numpy',
                 'pyproj',
                 'geojson',
-                'rasterio[s3]>=1.2']
+                'rasterio>=1.2']
 
 extras_require = {'test': ['pytest']}
 

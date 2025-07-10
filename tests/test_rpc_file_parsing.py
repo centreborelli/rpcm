@@ -14,6 +14,7 @@ def supported_files():
     parsed by `rpc_from_rpc_file`
     """
     filenames = [
+        "JAX_068_001_RGB.json",
         "rpc_IKONOS.txt",
         "rpc_PLEIADES.xml",
         "rpc_SPOT6.xml",

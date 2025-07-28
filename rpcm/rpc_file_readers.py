@@ -3,7 +3,7 @@
 # Copyright (C) 2015-19, Enric Meinhardt <enric.meinhardt@cmla.ens-cachan.fr>
 
 
-from xml.etree import ElementTree
+from defusedxml import ElementTree
 
 
 def read_rpc_file(rpc_file):
@@ -93,7 +93,10 @@ def read_rpc_xml(rpc_content):
     """
 
     # parse the xml file content
-    tree = ElementTree.fromstring(rpc_content)
+    tree = ElementTree.fromstring(rpc_content,
+                                  forbid_dtd=True,
+                                  forbid_entities=True,
+                                  forbid_external=True)
 
     # determine wether it's a pleiades, spot-6 or worldview image
     a = tree.find('Metadata_Identification/METADATA_PROFILE') # PHR_SENSOR

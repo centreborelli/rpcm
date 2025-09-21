@@ -4,6 +4,7 @@
 
 
 from xml.etree import ElementTree
+import json
 
 
 def read_rpc_file(rpc_file):
@@ -27,6 +28,29 @@ def read_rpc_file(rpc_file):
             rpc = read_rpc_xml(rpc_content)
         except NotImplementedError:
             raise NotImplementedError('XML file {} not supported'.format(rpc_file))
+    elif rpc_file.lower().endswith('json'):
+        with open(rpc_file, 'r') as f:
+            rpc = json.load(f)
+            assert 'rpc' in rpc, "JSON file {} does not contain 'rpc' key".format(rpc_file)
+            rpc = rpc['rpc']
+            d = {}
+            d["LINE_OFF"] = rpc['row_offset']
+            d["SAMP_OFF"] = rpc['col_offset']
+            d["LAT_OFF"] = rpc['lat_offset']
+            d["LONG_OFF"] = rpc['lon_offset']
+            d["HEIGHT_OFF"] = rpc['alt_offset']
+
+            d["LINE_SCALE"] = rpc['row_scale']
+            d["SAMP_SCALE"] = rpc['col_scale']
+            d["LAT_SCALE"] = rpc['lat_scale']
+            d["LONG_SCALE"] = rpc['lon_scale']
+            d["HEIGHT_SCALE"] = rpc['alt_scale']
+
+            d["LINE_NUM_COEFF"] = " ".join([str(x) for x in rpc['row_num']])
+            d["LINE_DEN_COEFF"] = " ".join([str(x) for x in rpc['row_den']])
+            d["SAMP_NUM_COEFF"] = " ".join([str(x) for x in rpc['col_num']])
+            d["SAMP_DEN_COEFF"] = " ".join([str(x) for x in rpc['col_den']])
+            rpc = {k: d[k] for k in sorted(d)}
     else:
         # we assume that non xml rpc files follow the ikonos convention
         rpc = read_rpc_ikonos(rpc_content)

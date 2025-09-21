@@ -19,7 +19,6 @@ def read_rpc_file(rpc_file):
         dictionary read from the RPC file, or an empty dict if fail
 
     """
-
     with open(rpc_file) as f:
         rpc_content = f.read()
 
@@ -76,7 +75,6 @@ def read_rpc_ikonos(rpc_content):
     return d
 
 
-
 def read_rpc_xml(rpc_content):
     """
     Read RPC file assuming the XML format and determine whether it's a pleiades, spot-6 or worldview image
@@ -91,13 +89,13 @@ def read_rpc_xml(rpc_content):
         NotImplementedError: if the file format is not handled (the expected keys are not found)
 
     """
-
     # parse the xml file content
     tree = ElementTree.fromstring(rpc_content)
 
     # determine wether it's a pleiades, spot-6 or worldview image
     a = tree.find('Metadata_Identification/METADATA_PROFILE') # PHR_SENSOR
     b = tree.find('IMD/IMAGE/SATID') # WorldView
+    c = tree.find('specific/mission')
     parsed_rpc = None
     if a is not None:
         if a.text in ['PHR_SENSOR', 'S6_SENSOR', 'S7_SENSOR']:
@@ -107,6 +105,9 @@ def read_rpc_xml(rpc_content):
     elif b is not None:
         if b.text == 'WV02' or b.text == 'WV01' or b.text == 'WV03':
             parsed_rpc = read_rpc_xml_worldview(tree)
+    elif c is not None:
+        if c.text == 'EnMAP':
+            parsed_rpc = read_rpc_xml_enmap(tree)
 
     if not parsed_rpc:
         raise NotImplementedError()
@@ -284,5 +285,54 @@ def read_rpc_xml_worldview(tree):
 #    # image dimensions
 #    m.lastRow = int(tree.find('IMD/NUMROWS').text)
 #    m.lastCol = int(tree.find('IMD/NUMCOLUMNS').text)
+
+    return m
+
+
+def read_rpc_xml_enmap(tree):
+    """
+    Read RPC fields from a parsed XML tree assuming the EnMAP XML format.
+
+    This reader works for L1B, L1C and L2A products.
+
+    Args:
+        tree: parsed XML tree
+
+    Returns:
+        dict: dictionary of models (dictionnaries) read from the RPC file, or
+            empty dict in case of failure. There is one model per band, the
+            bands numbers correspond to dictionary keys.
+
+    """
+    def parse_coeff(element, prefix, indices):
+        """ helper function"""
+        return ' '.join([element.find(prefix + "_" + "{:02d}".format(x)).text for x in indices])
+
+    m = {}
+
+    # direct model (LOCALIZATION), there is 1 model per band
+    rpc_models = tree.find('product/navigation/RPC').findall("bandID")
+
+    for band, rpc_model in enumerate(rpc_models):
+        model = {}
+
+        model['LINE_OFF'    ] = float(rpc_model.find('ROW_OFF').text)
+        model['SAMP_OFF'    ] = float(rpc_model.find('COL_OFF').text)
+        model['LAT_OFF'     ] = float(rpc_model.find('LAT_OFF').text)
+        model['LONG_OFF'    ] = float(rpc_model.find('LONG_OFF').text)
+        model['HEIGHT_OFF'  ] = float(rpc_model.find('HEIGHT_OFF').text)
+
+        model['LINE_SCALE'  ] = float(rpc_model.find('ROW_SCALE').text)
+        model['SAMP_SCALE'  ] = float(rpc_model.find('COL_SCALE').text)
+        model['LAT_SCALE'   ] = float(rpc_model.find('LAT_SCALE').text)
+        model['LONG_SCALE'  ] = float(rpc_model.find('LONG_SCALE').text)
+        model['HEIGHT_SCALE'] = float(rpc_model.find('HEIGHT_SCALE').text)
+
+        model['LINE_NUM_COEFF'] = parse_coeff(rpc_model, "ROW_NUM", range(1, 21))
+        model['LINE_DEN_COEFF'] = parse_coeff(rpc_model, "ROW_DEN", range(1, 21))
+        model['SAMP_NUM_COEFF'] = parse_coeff(rpc_model, "COL_NUM", range(1, 21))
+        model['SAMP_DEN_COEFF'] = parse_coeff(rpc_model, "COL_DEN", range(1, 21))
+
+        m[str(band+1)] = model
 
     return m
